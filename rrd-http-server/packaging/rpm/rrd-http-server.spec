@@ -3,7 +3,7 @@ Version:        1.3.0
 Release:        5%{?dist}
 Summary:        Server for rrd data gathered by OpenInfinity Health monitoring
 BuildArch:      x86_64
-License:        Tieto
+License:        Apache
 URL:            http://www.tieto.com
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{release}-root-%(%{__id_u} -n)

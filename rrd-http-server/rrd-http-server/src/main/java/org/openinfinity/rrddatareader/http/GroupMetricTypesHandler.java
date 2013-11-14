@@ -1,0 +1,37 @@
+/*
+ * #%L
+ * Health Monitoring : RRD Data Reader
+ * %%
+ * Copyright (C) 2012 Tieto
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+package org.openinfinity.rrddatareader.http;
+
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.openinfinity.rrddatareader.service.MonitoringService;
+import org.openinfinity.rrddatareader.service.RrdMonitoringService;
+import org.openinfinity.rrddatareader.util.HttpUtil;
+
+public class GroupMetricTypesHandler implements AbstractHandler {
+
+    @Override
+    public void handle(HttpResponse response, QueryStringDecoder queryStringDecoder) throws Exception {
+        String groupName = HttpUtil.get(queryStringDecoder, "groupName");
+        MonitoringService monitoringService = new RrdMonitoringService();
+        response.setContent(ChannelBuffers.copiedBuffer(monitoringService.getGroupMetricTypes(groupName).getBytes()));
+    }
+}

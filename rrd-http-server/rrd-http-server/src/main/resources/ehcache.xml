@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://www.ehcache.org/ehcache.xsd" updateCheck="true"
+	monitoring="autodetect" dynamicConfig="true">
+
+	<diskStore path="java.io.tmpdir" />
+
+	<cache name="fsStructureCache"
+           maxEntriesLocalHeap="1000"
+           eternal="false"
+           overflowToDisk="false"
+           timeToIdleSeconds="180"
+           timeToLiveSeconds="180"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off" />
+            
+</ehcache>

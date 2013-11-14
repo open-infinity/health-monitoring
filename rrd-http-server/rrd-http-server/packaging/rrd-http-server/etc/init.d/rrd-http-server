@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# chkconfig: - 85 15
+# description: rrd-http-server is a http server for rrd data gathered by collectd
+# processname: jsvc.exe 
+# pidfile: /opt/var/run/rrd-http-server.pid
+
+# Source function library.
+. /etc/init.d/functions
+. /etc/profile.d/toas.sh
+
+RETVAL=0
+ARGS=""
+prog=rrd-http-server
+start_script=$TOAS_RRD_HTTP_SERVER_ROOT/bin/start-rrd-http-server.sh
+stop_script=$TOAS_RRD_HTTP_SERVER_ROOT/bin/stop-rrd-http-server.sh
+
+start () {
+	echo -n $"Starting $prog "
+        sh $start_script    
+        RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
+}
+stop () {
+	echo -n $"Stopping $prog "
+	sh $stop_script
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
+}
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+	status $prog
+	;;
+  restart|reload)
+	stop
+	start
+	;;
+  condrestart)
+	[ -f /var/lock/subsys/$prog ] && stop && start || :
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|reload|condrestart}"
+	exit 1
+esac
+
+unset JAVA_HOME
+
+exit $?
+
+# vim:syntax=sh

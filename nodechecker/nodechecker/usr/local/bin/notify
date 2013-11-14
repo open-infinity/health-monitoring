@@ -1,0 +1,10 @@
+#!/bin/bash
+
+TMP=$(mktemp --tmpdir=$TOAS_HEALTH_MONITORING_ROOT/var/lib/notifications/inbox)
+
+while read x y
+do
+    echo "$x $y" >> $TMP
+done
+chmod 666 $TMP
+

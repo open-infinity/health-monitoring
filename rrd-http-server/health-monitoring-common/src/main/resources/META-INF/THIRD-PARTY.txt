@@ -1,0 +1,13 @@
+List of third-party dependencies grouped by their license type.
+
+Apache License, Version 2.0 : 
+
+BSD : 
+
+CDDL, Version 1.0 : 
+
+Common Public License, Version 1.0 : 
+
+LGPL, Version 2.1 : 
+
+MIT License : 

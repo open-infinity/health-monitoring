@@ -1,0 +1,5 @@
+#!/usr/bin/env python2
+
+import nodechecker.control.processmanager
+
+nodechecker.control.processmanager.stop_toas_health_monitoring()

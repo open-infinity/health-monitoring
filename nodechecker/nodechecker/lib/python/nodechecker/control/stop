@@ -2,4 +2,4 @@
 
 import nodechecker.control.processmanager
 
-nodechecker.control.processmanager.stop_toas_health_monitoring()
+nodechecker.control.processmanager.stop_health_monitoring()

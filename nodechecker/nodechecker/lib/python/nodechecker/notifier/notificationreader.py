@@ -7,7 +7,7 @@ import logging
 import notification
 import nodechecker.util
 
-TOAS_HEALTH_MONITORING_ROOT = "TOAS_HEALTH_MONITORING_ROOT"
+OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
 
 
 class NotificationReader(object):
@@ -18,7 +18,7 @@ class NotificationReader(object):
         self.dead_node_string = config.notifications_dead_node_string
         self.eol = "\n"
         self.text_separator = ":"
-        self.inbox = os.path.join(os.environ[TOAS_HEALTH_MONITORING_ROOT],
+        self.inbox = os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT],
                                   config.notifications_home,
                                   config.notifications_inbox_dir)
 

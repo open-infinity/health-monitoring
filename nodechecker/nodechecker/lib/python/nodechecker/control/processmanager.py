@@ -5,7 +5,7 @@ from nodechecker.nodechecker import *
 import daemon
 import sysutil
 
-NODECHECKER_PID_FILE = '/var/run/oi-healthmonitoring.pid'
+NODECHECKER_PID_FILE = '/var/run/oi3-healthmonitoring.pid'
 
 
 class NodecheckerDaemon(daemon.Daemon):
@@ -14,7 +14,7 @@ class NodecheckerDaemon(daemon.Daemon):
         main()
 
 
-def start_toas_health_monitoring():
+def start_health_monitoring():
     """Starts nodechecker.
     Nodechecker then runs in slave or master mode, and calls
     configure_node_as_master(), or configure_node_as_master()
@@ -23,10 +23,10 @@ def start_toas_health_monitoring():
     start_nodechecker()
 
 
-def stop_toas_health_monitoring():
+def stop_health_monitoring():
     stop_nodechecker()
-    sysutil.systemV_service_command('rrd-http-server', 'stop')
-    sysutil.systemV_service_command('collectd', 'stop')
+    sysutil.systemV_service_command('oi3-rrd-http-server', 'stop')
+    sysutil.systemV_service_command('oi3-collectd', 'stop')
     sysutil.systemV_service_command('pound', 'stop')
 
 

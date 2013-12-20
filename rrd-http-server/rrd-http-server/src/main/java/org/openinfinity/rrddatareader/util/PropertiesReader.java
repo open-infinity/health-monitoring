@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +31,7 @@ public class PropertiesReader {
     private static final String ENV_VARIABLE_END = "}";
     private static final String ENV_VARIABLE_START = "{";
 
-    private static final String TOAS_VARIABLE_MATCHER = ".*\\" + ENV_VARIABLE_START + "TOAS.*\\" + ENV_VARIABLE_END
+    private static final String OI_VARIABLE_MATCHER = ".*\\" + ENV_VARIABLE_START + "OI.*\\" + ENV_VARIABLE_END
             + ".*";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesReader.class);
@@ -66,7 +66,7 @@ public class PropertiesReader {
 
     private static String get(String key) {
         String property = PROPERTIES.getProperty(key);
-        if (property != null && property.matches(TOAS_VARIABLE_MATCHER)) {
+        if (property != null && property.matches(OI_VARIABLE_MATCHER)) {
             property = EnvVariableSubstitutor.replace(property);
             PROPERTIES.put(key, property);
         }
@@ -86,12 +86,12 @@ public class PropertiesReader {
                 }
                 value = value.replace(ENV_VARIABLE_START + var + ENV_VARIABLE_END, envVar);
             }
-            return value.matches(TOAS_VARIABLE_MATCHER) ? replace(value) : value;
+            return value.matches(OI_VARIABLE_MATCHER) ? replace(value) : value;
         }
     }
 
     public static void main(String... args) throws IOException {
-        System.out.println(EnvVariableSubstitutor.replace("{TOAS_VAR_1}/{TOAS_VAR_2}/memory"));
+        System.out.println(EnvVariableSubstitutor.replace("{OI_VAR_1}/{OI_VAR_2}/memory"));
         System.out.println(EnvVariableSubstitutor.replace("/opt/memory"));
     }
 }

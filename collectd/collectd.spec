@@ -1,32 +1,34 @@
 
-Name:           collectd
-Version:        5.2.2
+Name:           oi3-collectd
+Version:        5.4.0
 Release:        1%{?dist}
-Summary:        Collectd patched, modified and configured for OpenInfinity
+Summary:        Collectd built and configured for Open Infinity
 BuildArch:      x86_64
 Group:          Applications
-License:        todo Distributable
+License:        GNU GPLv2
 Vendor:         OpenInfinity
 Packager:       OpenInfinity 
 BuildRequires:  rrdtool-devel >= 1.3.8
-BuildRequires:  perl-ExtUtils-MakeMaker >= 6.55
+BuildRequires:  perl-ExtUtils-MakeMaker >= 6.5
+BuildRequires:  perl-ExtUtils-Embed >= 1.28
 BuildRequires:  gcc >= 4
 BuildRequires:  make >= 3.81
+BuildRequires:  java-1.7.0-openjdk-devel
 Source0:        %{name}-%{version}.tar.gz
-Patch1:         df.patch
-Patch2:	        load.patch
+Patch1:	        load.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+%global installation_dir opt/openinfinity/3.0.0/healthmonitoring
+
 %description
-Collectd patched, modified and configured for OpenInfinity
+Collectd buildt and configured for Open Infinity
 
 %prep
 %setup -q
 %patch1 -p1
-%patch2 -p1
 
 %build
-./configure --prefix /opt/openinfinity/2.0.0/healthmonitoring/collectd --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.0.x86_64 --enable-rrdtool --enable-debug --enable-java
+./configure --prefix /%{installation_dir}/collectd --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.45.x86_64/ --enable-rrdtool --enable-debug --enable-java
 make
 
 %install
@@ -36,17 +38,17 @@ make install DESTDIR=$RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-/opt/openinfinity/2.0.0/healthmonitoring/collectd/
-%exclude /opt/openinfinity/2.0.0/healthmonitoring/collectd/etc/collectd.conf
+/%{installation_dir}/collectd/
+%exclude /%{installation_dir}/collectd/etc/collectd.conf
  
 %post
 /sbin/chkconfig --add collectd
 /sbin/chkconfig collectd on
 
-mkdir -p /opt/openinfinity/2.0.0/healthmonitoring/collectd/
-mkdir -p /opt/openinfinity/2.0.0/healthmonitoring/collectd/var/log/
-mkdir -p /opt/openinfinity/2.0.0/healthmonitoring/collectd/run/
-mkdir -p /opt/openinfinity/2.0.0/healthmonitoring/collectd/var/lib/collectd/rrd
+mkdir -p /%{installation_dir}/collectd/
+mkdir -p /%{installation_dir}/collectd/var/log/
+mkdir -p /%{installation_dir}/collectd/run/
+mkdir -p /%{installation_dir}/collectd/var/lib/collectd/rrd
 
 %preun
 if [ "$1" = 0 ]; then
@@ -57,6 +59,9 @@ fi
 exit 0
 
 %changelog
+* Wed Dec 14 2013 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.2.2-2
+- Installation path changed to  opt/openinfinity/3.0.0/healthmonitoring
+
 * Thu Nov 14 2013 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.2.2-1
 - Using openjdk 1.7
 

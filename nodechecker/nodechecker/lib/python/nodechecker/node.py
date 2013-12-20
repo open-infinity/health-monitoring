@@ -27,7 +27,7 @@ class Node(object):
         self.cloud_zone = cloud_zone
         self.port = int(port)
         self.machine_type = machine_type
-        self.group_name = "toas"
+        self.group_name = "oi"
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

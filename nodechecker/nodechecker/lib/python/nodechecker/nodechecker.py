@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 #
-# This is NodeChecker component of TOAS Health Monitoring.
+# This is NodeChecker component of Open Infinity Health Monitoring.
 #
 
 from __future__ import division          # Python 3 forward compatibility
@@ -27,12 +27,12 @@ import control.nodemanager as nodemanager
 
 # Constants
 
-TOAS_HEALTH_MONITORING_ROOT = "TOAS_HEALTH_MONITORING_ROOT"
-TOAS_COLLECTD_ROOT = "TOAS_COLLECTD_ROOT"
+OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
+OI_COLLECTD_ROOT = "OI_COLLECTD_ROOT"
 CONFIG_FILE = os.path.join("etc", "nodechecker.conf")
 NODE_LIST_FILE = os.path.join("etc", "nodelist.conf")
 ACTIVE_NODE_LIST_FILE = os.path.join(
-      os.environ[TOAS_HEALTH_MONITORING_ROOT], "etc", "active_nodelist.conf")
+      os.environ[OI_HEALTH_MONITORING_ROOT], "etc", "active_nodelist.conf")
 BIG_TIME_DIFF = 1000000
 RRD_HTTP_SERVER_PORT = 8181
 NODE_CREATION_TIMEOUT = 500
@@ -152,7 +152,7 @@ def check_node_still_dead(node_to_check):
 
     now = time.mktime(time.localtime())
     path = os.path.join(
-           os.environ[TOAS_COLLECTD_ROOT], conf.collectd_rrd_dir,
+           os.environ[OI_COLLECTD_ROOT], conf.collectd_rrd_dir,
            node_to_check.hostname)
     lock_resources.acquire()
     try:
@@ -202,7 +202,7 @@ def dead_node_scan():
             found_new_dead_node = False
             found_resurrected_node = False
             path = os.path.join(
-                   os.environ[TOAS_COLLECTD_ROOT], conf.collectd_rrd_dir,
+                   os.environ[OI_COLLECTD_ROOT], conf.collectd_rrd_dir,
                    n.hostname)
             known_as_dead = n.ip_address in dead_node_set
             #FIXME: Nested try
@@ -524,35 +524,35 @@ def process_settings(options, conf, node):
     if options.ip_address_public:
         node.ip_address_public = options.ip_address_public
     elif conf.node_ip_address_public == "auto":
-        node.ip_address_public = os.environ["TOAS_PUBLIC_IP"]
+        node.ip_address_public = os.environ["OI_PUBLIC_IP"]
     else:
         node.ip_address_public = conf.node_ip_address_public
 
     if options.instance_id:
         node.instance_id = options.instance_id
     elif conf.node_instance_id == "auto":
-        node.instance_id = os.environ["TOAS_INSTANCE_ID"]
+        node.instance_id = os.environ["OI_INSTANCE_ID"]
     else:
         node.instance_id = conf.instance_id
 
     if options.cluster_id:
         node.cluster_id = options.cluster_id
     elif conf.node_cluster_id == "auto":
-        node.cluster_id = os.environ["TOAS_CLUSTER_ID"]
+        node.cluster_id = os.environ["OI_CLUSTER_ID"]
     else:
         node.cluster_id = conf.node_cluster_id
 
     if options.machine_id:
         node.machine_id = options.machine_id
     elif conf.node_machine_id == "auto":
-        node.machine_id = os.environ["TOAS_MACHINE_ID"]
+        node.machine_id = os.environ["OI_MACHINE_ID"]
     else:
         node.machine_id = conf.node_machine_id
 
     if options.cloud_zone:
         node.cloud_zone = options.cloud_zone
     elif conf.node_cloud_zone == "auto":
-        node.cloud_zone = os.environ["TOAS_CLOUD_ZONE"]
+        node.cloud_zone = os.environ["OI_CLOUD_ZONE"]
     else:
         node.cloud_zone = conf.node_cloud_zone
 
@@ -634,7 +634,7 @@ def init(settings):
     global heartbeats_received, master_list, lock_resources
 
     # Construct configuration file reader
-    config_file = os.path.join(os.environ[TOAS_HEALTH_MONITORING_ROOT],
+    config_file = os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT],
                                CONFIG_FILE)
     conf = config.Config(config_file)
 
@@ -643,7 +643,7 @@ def init(settings):
     process_settings(settings, conf, my_node)
     configure_logger()
     nodelist_reader = reader.Reader(os.path.join(
-          os.environ[TOAS_HEALTH_MONITORING_ROOT], NODE_LIST_FILE))
+          os.environ[OI_HEALTH_MONITORING_ROOT], NODE_LIST_FILE))
     my_node.group_name = nodelist_reader.get_attribute(my_node.ip_address,
                                                        'GROUP_NAME')
     my_node.machine_type = nodelist_reader.get_attribute(my_node.ip_address,

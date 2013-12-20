@@ -8,7 +8,7 @@ import email.mime.text
 import notification
 import nodechecker.util
 
-ENV_HM_HOME_DIR = "TOAS_HEALTH_MONITORING_ROOT"
+ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
 MSG_DELIMITER = '-----------------------------------------------' \
                 '------------------'
 
@@ -58,7 +58,7 @@ class MailSender(object):
         else:
             notification_word = ' notification'
         msg_header = " ".join(['This mail contains ', str(list_count),
-                               notification_word, " sent from:"])
+                               notification_word, " sent from Health monitoring master node at:"])
 
         # Sender host information
         sender_info = [self.eol, self.eol,

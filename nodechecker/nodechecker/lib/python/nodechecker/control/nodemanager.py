@@ -8,9 +8,9 @@ import fileinput
 import sysutil
 import nodechecker.util
 
-TOAS_HEALTH_MONITORING_ROOT = os.environ["TOAS_HEALTH_MONITORING_ROOT"]
-TOAS_COLLECTD_ROOT = os.environ["TOAS_COLLECTD_ROOT"]
-RRD_DIR = os.path.join(TOAS_COLLECTD_ROOT, "var/lib/collectd/rrd")
+OI_HEALTH_MONITORING_ROOT = os.environ["OI_HEALTH_MONITORING_ROOT"]
+OI_COLLECTD_ROOT = os.environ["OI_COLLECTD_ROOT"]
+RRD_DIR = os.path.join(OI_COLLECTD_ROOT, "var/lib/collectd/rrd")
 POUND_TPL_FILE = "var/share/pound/pound.cfg.tpl"
 POUND_CFG_FILE = "/etc/pound.cfg"
 
@@ -19,12 +19,12 @@ logger = logging.getLogger('nodechecker.nodemanager')
 
 def configure_node_as_master(own_ip):
     configure_and_restart_collectd(own_ip, "server")
-    sysutil.systemV_service_command('rrd-http-server', 'start')
+    sysutil.systemV_service_command('oi3-rrd-http-server', 'start')
     sysutil.systemV_service_command('pound', 'stop')
 
 
 def configure_node_as_slave(own_ip, own_port, server_ip, server_port):
-    sysutil.systemV_service_command('rrd-http-server', 'stop')
+    sysutil.systemV_service_command('oi3-rrd-http-server', 'stop')
     configure_and_restart_collectd(server_ip, "client")
     configure_and_restart_pound(own_ip, own_port, server_ip, server_port)
 
@@ -35,8 +35,8 @@ def configure_and_restart_collectd(ip, mode):
         logger.error("Error configuring collectd")
         return
     tpl_file = "var/share/collectd/%s.tpl" % (mode)
-    src = os.path.join(TOAS_HEALTH_MONITORING_ROOT, tpl_file)
-    dst = os.path.join(TOAS_COLLECTD_ROOT, "etc/collectd.d/network.conf")
+    src = os.path.join(OI_HEALTH_MONITORING_ROOT, tpl_file)
+    dst = os.path.join(OI_COLLECTD_ROOT, "etc/collectd.d/network.conf")
     try:
         shutil.copyfile(src, dst)
         for line in fileinput.input(dst, inplace=1):
@@ -51,12 +51,12 @@ def configure_and_restart_collectd(ip, mode):
                     print line,
     except:
         nodechecker.util.log_exception(sys.exc_info())
-    sysutil.systemV_service_command('collectd', 'restart')
+    sysutil.systemV_service_command('oi3-collectd', 'restart')
 
 
 def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
     global logger
-    src = os.path.join(TOAS_HEALTH_MONITORING_ROOT, POUND_TPL_FILE)
+    src = os.path.join(OI_HEALTH_MONITORING_ROOT, POUND_TPL_FILE)
     dst = POUND_CFG_FILE
     try:
         shutil.copyfile(src, dst)

@@ -1,0 +1,4 @@
+export OI_HEALTH_MONITORING_ROOT=/opt/openinfinity/3.0.0/healthmonitoring/nodechecker
+export OI_RRD_HTTP_SERVER_ROOT=/opt/openinfinity/3.0.0/healthmonitoring/rrd-http-server
+export OI_COLLECTD_ROOT=/opt/openinfinity/3.0.0/healthmonitoring/collectd
+export JAVA_HOME=/etc/alternatives/jre_openjdk/

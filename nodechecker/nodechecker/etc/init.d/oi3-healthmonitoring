@@ -1,0 +1,55 @@
+#!/bin/bash
+# chkconfig: - 85 15
+# description: Open Infinity Health Monitoring init script
+# processname: oi3-healthmonitoring
+# pidfile: /var/run/oi3-healthmonitoring.pid
+# config:
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+#. /etc/sysconfig/network
+
+# Open Infinity variables
+. /etc/profile.d/oi.sh
+
+# Check that networking is up.
+
+#[ ${NETWORKING} = "no" ] && exit 0
+
+HOSTNAME=$(hostname);export HOSTNAME
+
+# See how we were called.
+  case "$1" in
+    start)
+          # Start daemon.
+          $OI_HEALTH_MONITORING_ROOT/bin/start&
+          RETVAL=$?
+          [ $RETVAL -eq 0 ] && touch /var/lock/subsys/oi3-healthmonitoring
+          ;;
+    stop)
+          # Stop daemons.
+          $OI_HEALTH_MONITORING_ROOT/bin/stop&
+          echo "Waiting for shutdown.."
+          sleep 2
+
+          RETVAL=$?
+          [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/oi3-healthmonitoring
+          ;;
+    restart)
+          $0 stop
+          $0 start
+          ;;
+    condrestart)
+         [ -e /var/lock/subsys/oi3-healthmonitoring ] && $0 restart
+         ;;
+    status)
+          status oi3-healthmonitoring
+          ;;
+    *)
+          echo "Usage: $0 {start|stop|restart|status}"
+          exit 1
+  esac
+
+exit 0

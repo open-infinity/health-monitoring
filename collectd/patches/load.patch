@@ -1,8 +1,7 @@
-diff --git a/src/collectd.conf.in b/src/collectd.conf.in
-index 4a88e66..cb69b32 100644
---- a/src/collectd.conf.in
-+++ b/src/collectd.conf.in
-@@ -469,6 +469,11 @@
+diff -rupN collectd-5.4.0/src/collectd.conf.in collectd-5.4.0-new/src/collectd.conf.in
+--- collectd-5.4.0/src/collectd.conf.in	2013-08-18 13:24:25.065973312 +0300
++++ collectd-5.4.0-new/src/collectd.conf.in	2013-12-19 08:37:59.756478543 +0200
+@@ -481,6 +481,11 @@
  #	InterfaceFormat name
  #</Plugin>
  
@@ -14,11 +13,10 @@ index 4a88e66..cb69b32 100644
  #<Plugin lpar>
  #	CpuPoolStats   false
  #	ReportBySerial false
-diff --git a/src/collectd.conf.pod b/src/collectd.conf.pod
-index ca1fa38..fba8bf8 100644
---- a/src/collectd.conf.pod
-+++ b/src/collectd.conf.pod
-@@ -2109,6 +2109,30 @@ interface path might change between reboots of a guest or across migrations.
+diff -rupN collectd-5.4.0/src/collectd.conf.pod collectd-5.4.0-new/src/collectd.conf.pod
+--- collectd-5.4.0/src/collectd.conf.pod	2013-08-18 13:24:25.069973376 +0300
++++ collectd-5.4.0-new/src/collectd.conf.pod	2013-12-19 08:47:13.708484782 +0200
+@@ -2199,6 +2199,30 @@ interface path might change between rebo
  
  =back
  
@@ -49,19 +47,19 @@ index ca1fa38..fba8bf8 100644
  =head2 Plugin C<logfile>
  
  =over 4
-diff --git a/src/load.c b/src/load.c
-index 0188da7..887490a 100644
---- a/src/load.c
-+++ b/src/load.c
-@@ -2,6 +2,7 @@
+diff -rupN collectd-5.4.0/src/load.c collectd-5.4.0-new/src/load.c
+--- collectd-5.4.0/src/load.c	2013-08-18 13:24:25.073973439 +0300
++++ collectd-5.4.0-new/src/load.c	2013-12-19 08:38:19.660478767 +0200
+@@ -2,7 +2,7 @@
   * collectd - src/load.c
   * Copyright (C) 2005-2008  Florian octo Forster
   * Copyright (C) 2009       Manuel Sanmartin
+- *
 + * Copyright (C) 2013       Vedran Bartonicek
-  *
   * This program is free software; you can redistribute it and/or modify it
   * under the terms of the GNU General Public License as published by the
-@@ -19,6 +20,7 @@
+  * Free Software Foundation; only version 2 of the License is applicable.
+@@ -19,6 +19,7 @@
   * Authors:
   *   Florian octo Forster <octo at verplant.org>
   *   Manuel Sanmartin
@@ -69,17 +67,16 @@ index 0188da7..887490a 100644
   **/
  
  #define _BSD_SOURCE
-@@ -26,6 +28,9 @@
+@@ -26,6 +27,8 @@
  #include "collectd.h"
  #include "common.h"
  #include "plugin.h"
 +#include "utils_ignorelist.h"
-+
 +#include <unistd.h>
  
  #ifdef HAVE_SYS_LOADAVG_H
  #include <sys/loadavg.h>
-@@ -49,7 +54,54 @@
+@@ -49,7 +52,54 @@
  # include <libperfstat.h>
  #endif /* HAVE_PERFSTAT */
  
@@ -135,10 +132,11 @@ index 0188da7..887490a 100644
  {
  	value_t values[3];
  	value_list_t vl = VALUE_LIST_INIT;
-@@ -62,28 +114,36 @@ static void load_submit (gauge_t snum, gauge_t mnum, gauge_t lnum)
+@@ -61,29 +111,36 @@ static void load_submit (gauge_t snum, g
+ 	vl.values = values;
  	vl.values_len = STATIC_ARRAY_SIZE (values);
  	sstrncpy (vl.host, hostname_g, sizeof (vl.host));
- 	sstrncpy (vl.plugin, "load", sizeof (vl.plugin));
+-	sstrncpy (vl.plugin, "load", sizeof (vl.plugin));
 -	sstrncpy (vl.type, "load", sizeof (vl.type));
 +	sstrncpy (vl.type, type, sizeof (vl.type));
  
@@ -151,7 +149,7 @@ index 0188da7..887490a 100644
 +    gauge_t mnum = 0;
 +    gauge_t lnum = 0;
 +    int cores = cpu_cores();
-+    
++
  #if defined(HAVE_GETLOADAVG)
  	double load[3];
  
@@ -177,15 +175,15 @@ index 0188da7..887490a 100644
  	FILE *loadavg;
  	char buffer[16];
  
-@@ -95,6 +155,7 @@ static int load_read (void)
+@@ -95,6 +152,7 @@ static int load_read (void)
  		char errbuf[1024];
  		WARNING ("load: fopen: %s",
  				sstrerror (errno, errbuf, sizeof (errbuf)));
-+		fclose (loadavg);
++                fclose(loadavg);
  		return (-1);
  	}
  
-@@ -123,11 +184,9 @@ static int load_read (void)
+@@ -123,11 +181,9 @@ static int load_read (void)
  	mnum = atof (fields[1]);
  	lnum = atof (fields[2]);
  
@@ -197,7 +195,7 @@ index 0188da7..887490a 100644
  	sg_load_stats *ls;
  
  	if ((ls = sg_get_load_stats ()) == NULL)
-@@ -137,11 +196,9 @@ static int load_read (void)
+@@ -137,11 +193,9 @@ static int load_read (void)
  	mnum = ls->min5;
  	lnum = ls->min15;
  
@@ -209,21 +207,21 @@ index 0188da7..887490a 100644
  	perfstat_cpu_total_t cputotal;
  
  	if (perfstat_cpu_total(NULL,  &cputotal, sizeof(perfstat_cpu_total_t), 1) < 0)
-@@ -156,17 +213,20 @@ static int load_read (void)
+@@ -156,17 +210,20 @@ static int load_read (void)
  	mnum = (float)cputotal.loadavg[1]/(float)(1<<SBITS);
  	lnum = (float)cputotal.loadavg[2]/(float)(1<<SBITS);
  
 -	load_submit (snum, mnum, lnum);
  /* #endif HAVE_PERFSTAT */
--
+ 
  #else
  # error "No applicable input method."
  #endif
+-
 +	if (report_absolute_load)
 +		load_submit(snum, mnum, lnum, "load");
 +	if (report_relative_load && cores > 0) 
 +		load_submit(snum/cores, mnum/cores, lnum/cores, "load_relative");
- 
  	return (0);
  }
  
@@ -232,14 +230,13 @@ index 0188da7..887490a 100644
 +	plugin_register_config ("load", load_config, config_keys, config_keys_num);
  	plugin_register_read ("load", load_read);
  } /* void module_register */
-diff --git a/src/types.db b/src/types.db
-index 950f6b0..054e8a5 100644
---- a/src/types.db
-+++ b/src/types.db
+diff -rupN collectd-5.4.0/src/types.db collectd-5.4.0-new/src/types.db
+--- collectd-5.4.0/src/types.db	2013-08-18 13:24:25.085973632 +0300
++++ collectd-5.4.0-new/src/types.db	2013-12-19 14:19:11.452709111 +0200
 @@ -90,6 +90,7 @@ irq			value:DERIVE:0:U
- latency			value:GAUGE:0:65535
+ latency			value:GAUGE:0:U
  links			value:GAUGE:0:U
- load			shortterm:GAUGE:0:100, midterm:GAUGE:0:100, longterm:GAUGE:0:100
+ load			shortterm:GAUGE:0:5000, midterm:GAUGE:0:5000, longterm:GAUGE:0:5000
 +load_relative		shortterm:GAUGE:0:100, midterm:GAUGE:0:100, longterm:GAUGE:0:100
  md_disks		value:GAUGE:0:U
  memcached_command	value:DERIVE:0:U

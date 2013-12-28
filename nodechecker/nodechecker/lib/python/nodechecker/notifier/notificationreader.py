@@ -83,7 +83,7 @@ class NotificationReader(object):
                     pass
 
         for n in node_list:
-            if n.hostname == self.node.hostname:
-                ntfc.add_master_node_parameters(n)
+            if n.hostname == ntfc.hostname:
+                ntfc.add_origin_node_parameters(n)
                 return ntfc
         return None

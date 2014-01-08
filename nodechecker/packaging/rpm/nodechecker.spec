@@ -1,6 +1,6 @@
 Name:           oi3-nodechecker
 Version:        3.0.0
-Release:        3%{?dist}
+Release:        6%{?dist}
 Summary:        The Health Monitoring package for Open Infinity
 BuildArch:      x86_64
 License:        Apache 2.0
@@ -25,13 +25,14 @@ cp -rf ./etc/init.d/oi3-healthmonitoring $RPM_BUILD_ROOT/etc/init.d/
 mkdir -p $RPM_BUILD_ROOT/etc/profile.d/
 cp -rf ./etc/profile.d/oi.sh.x86_64 $RPM_BUILD_ROOT/etc/profile.d/oi.sh
 
-mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/nodechecker
+mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/nodechecker/etc
 cp -rf ./opt/monitoring/* $RPM_BUILD_ROOT/%{installation_dir}/nodechecker
 cp -rf ./lib/python/nodechecker/nodechecker.conf $RPM_BUILD_ROOT/%{installation_dir}/nodechecker/etc/
 
 mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/collectd
 cp -rf ./opt/collectd/* $RPM_BUILD_ROOT/%{installation_dir}/collectd
 
+mkdir -p  $RPM_BUILD_ROOT/%{installation_dir}/nodechecker/var/log
 mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/nodechecker/var/lib/notifications/inbox
 mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/nodechecker/var/lib/notifications/sent
 

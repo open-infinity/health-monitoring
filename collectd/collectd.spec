@@ -1,7 +1,7 @@
 
 Name:           oi3-collectd
 Version:        5.4.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Collectd built and configured for Open Infinity
 BuildArch:      x86_64
 Group:          Applications
@@ -52,9 +52,9 @@ mkdir -p /%{installation_dir}/collectd/var/lib/collectd/rrd
 
 %preun
 if [ "$1" = 0 ]; then
-   /sbin/chkconfig collectd off
-   /etc/init.d/collectd stop
-   /sbin/chkconfig --del collectd
+   /sbin/chkconfig oi3-collectd off
+   /etc/init.d/oi3-collectd stop
+   /sbin/chkconfig --del oi3-collectd
 fi
 exit 0
 

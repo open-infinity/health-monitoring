@@ -81,6 +81,10 @@ public class PropertiesReader {
             if (start != -1 && end != -1 && start + 1 < end) {
                 String var = value.substring(start + 1, end);
                 String envVar = System.getenv(var);
+                LOGGER.error("------------ ACHTUNG !!! ---------");
+                LOGGER.error("properites variable is: ", value);
+                LOGGER.error("searching for env variable: ", var);
+                LOGGER.error("sys env variable is: ", envVar);
                 if (envVar == null) {
                     envVar = "";
                 }

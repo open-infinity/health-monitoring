@@ -45,7 +45,7 @@ class Notification(object):
 
         return self
 
-    def add_master_node_parameters(self, origin_node):
+    def add_origin_node_parameters(self, origin_node):
         self.ip_address_public = origin_node.ip_address_public
         self.machine_id = origin_node.machine_id
         return self

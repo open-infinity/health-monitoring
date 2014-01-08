@@ -1,4 +1,11 @@
+export OI_HOST_GROUP=oi-group
 export OI_HEALTH_MONITORING_ROOT=/opt/openinfinity/3.0.0/healthmonitoring/nodechecker
 export OI_RRD_HTTP_SERVER_ROOT=/opt/openinfinity/3.0.0/healthmonitoring/rrd-http-server
 export OI_COLLECTD_ROOT=/opt/openinfinity/3.0.0/healthmonitoring/collectd
-export JAVA_HOME=/etc/alternatives/jre_openjdk/ 
+export OI_CLOUD_ZONE=oi-zone
+export OI_INSTANCE_ID=1
+export OI_CLUSTER_ID=1
+export OI_MACHINE_ID=1
+export OI_PUBLIC_IP=1.2.3.4
+export JAVA_HOME=/etc/alternatives/jre_openjdk/
+ 

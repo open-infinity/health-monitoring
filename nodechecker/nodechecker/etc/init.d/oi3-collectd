@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# oi3-collectd    Startup script for the Collectd statistics gathering daemon used by Open Infinity cloud
+# collectd    Startup script for the Collectd statistics gathering daemon
 # chkconfig: - 86 15
 # description: Collectd is a statistics gathering daemon used to collect \
 #   system information ie. cpu, memory, disk, network
 # processname: collectd
-# config: /opt/openinfinity/3.0.0/healthmonitoring/collectd/etc/collectd.conf
-# pidfile: /opt/openinfinity/3.0.0/healthmonitoring/collectd/var/run/collectd.pid
+# pidfile: 
+# config:
 
 # Source function library.
 . /etc/init.d/functions
@@ -16,12 +16,13 @@ RETVAL=0
 ARGS=""
 prog="collectd"
 CONFIG=$OI_COLLECTD_ROOT/etc/collectd.conf
+PIDFILE=$OI_COLLECTD_ROOT/var/run/collectd.pid
 
 start () {
         echo -n $"Starting $prog: "
         if [ -r "$CONFIG" ]
         then
-                daemon $OI_COLLECTD_ROOT/sbin/$prog -C "$CONFIG"
+                daemon --pidfile $PIDFILE $OI_COLLECTD_ROOT/sbin/$prog -C "$CONFIG"
                 RETVAL=$?
                 echo
                 [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog

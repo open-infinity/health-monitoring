@@ -1,7 +1,7 @@
 
 Name:           oi3-collectd
 Version:        5.4.0
-Release:        2%{?dist}
+Release:        8%{?dist}
 Summary:        Collectd built and configured for Open Infinity
 BuildArch:      x86_64
 Group:          Applications
@@ -15,50 +15,59 @@ BuildRequires:  gcc >= 4
 BuildRequires:  make >= 3.81
 BuildRequires:  java-1.7.0-openjdk-devel
 Source0:        %{name}-%{version}.tar.gz
-Patch1:	        load.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-%global installation_dir opt/openinfinity/3.0.0/healthmonitoring
+%global installation_path /opt/openinfinity/3.0.0/healthmonitoring
 
 %description
-Collectd buildt and configured for Open Infinity
+Collectd built and configured for Open Infinity
 
 %prep
 %setup -q
-%patch1 -p1
 
 %build
-./configure --prefix /%{installation_dir}/collectd --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.45.x86_64/ --enable-rrdtool --enable-debug --enable-java
+./build.sh
+./configure --prefix %{installation_path}/collectd --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.45.x86_64/ --enable-rrdtool --enable-debug --enable-java
 make
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT
+make install DESTDIR=%{buildroot}
 
 %clean
 
 %files
 %defattr(-,root,root,-)
-/%{installation_dir}/collectd/
-%exclude /%{installation_dir}/collectd/etc/collectd.conf
+/%{installation_path}/collectd/
+%exclude %{installation_path}/collectd/etc/collectd.conf
  
 %post
-/sbin/chkconfig --add collectd
-/sbin/chkconfig collectd on
+/sbin/chkconfig --add oi3-collectd
+/sbin/chkconfig oi3-collectd on
 
-mkdir -p /%{installation_dir}/collectd/
-mkdir -p /%{installation_dir}/collectd/var/log/
-mkdir -p /%{installation_dir}/collectd/run/
-mkdir -p /%{installation_dir}/collectd/var/lib/collectd/rrd
+mkdir -p %{installation_path}/collectd/
+mkdir -p %{installation_path}/collectd/var/log/
+mkdir -p %{installation_path}/collectd/var/lib/collectd/rrd
 
 %preun
 if [ "$1" = 0 ]; then
    /sbin/chkconfig oi3-collectd off
-   /etc/init.d/oi3-collectd stop
+   /sbin/service oi3-collectd stop >/dev/null 2>&1
    /sbin/chkconfig --del oi3-collectd
 fi
+
+%postun
+if [ "$1" -ge "1" ] ; then
+    /sbin/service oi3-collectd condrestart >/dev/null 2>&1 || :
+fi
+
 exit 0
 
 %changelog
+* Thu Jan 14 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.4.4-7
+- Using collectd 5.4.0, commit 4c6303ec6be673df6c9e0964dfc9419c697bf47c. It
+has integrated pull request #498 that brings relative load functionality.
+Therefore no need to use pathes for load and df. 
+
 * Wed Dec 14 2013 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.2.2-2
 - Installation path changed to  opt/openinfinity/3.0.0/healthmonitoring
 

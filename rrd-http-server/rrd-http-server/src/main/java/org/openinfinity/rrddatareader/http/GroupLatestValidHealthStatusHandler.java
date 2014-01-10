@@ -42,6 +42,5 @@ public class GroupLatestValidHealthStatusHandler implements AbstractHandler{
         response.setContent(ChannelBuffers.copiedBuffer(monitoringService.getLatestValidGroupHealthStatus(groupName, dataType,
                 metricNames, new Date(Long.valueOf(endTime)),
                 Long.valueOf(step)).getBytes()));
-
     }
 }

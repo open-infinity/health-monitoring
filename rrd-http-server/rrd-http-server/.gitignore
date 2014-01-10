@@ -1,2 +1,18 @@
+# Generated files
 /target
 rrd-data-reader.log
+
+
+# Standard Java git ignore stuff
+
+# Compilation output
+*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.jar

@@ -26,20 +26,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.openinfinity.healthmonitoring.http.response.AbstractResponse;
-import org.openinfinity.healthmonitoring.http.response.GroupListResponse;
-import org.openinfinity.healthmonitoring.http.response.HealthStatusResponse;
+import org.openinfinity.healthmonitoring.http.response.*;
 import org.openinfinity.healthmonitoring.http.response.HealthStatusResponse.SingleHealthStatus;
-import org.openinfinity.healthmonitoring.http.response.MetricNamesResponse;
-import org.openinfinity.healthmonitoring.http.response.MetricTypesResponse;
-import org.openinfinity.healthmonitoring.http.response.NodeListResponse;
 import org.openinfinity.healthmonitoring.model.Node;
 import org.openinfinity.healthmonitoring.model.RrdValue;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class RrdMonitoringServiceTest {
 
@@ -62,7 +55,7 @@ public class RrdMonitoringServiceTest {
         TestCase.assertEquals(1, nodeListResponse.getInactiveNodes().size());
         
         Node inactiveNode = new Node();
-        inactiveNode.setGroupName("main");
+        inactiveNode.setGroupName("group1");
         inactiveNode.setIpAddress("10.33.2.12");
         inactiveNode.setNodeName("c3.com");
 
@@ -133,18 +126,17 @@ public class RrdMonitoringServiceTest {
     }
 
     @Test
-    @Ignore
     public void testGetGroupList() throws JsonParseException, JsonMappingException, IOException {
         GroupListResponse actual = mapper.readValue(monitoringService.getGroupList(), GroupListResponse.class);
-
         TestCase.assertEquals(0, actual.getResponseStatus());
         TestCase.assertEquals(1, actual.getGroups().size());
-        TestCase.assertNotNull(actual.getGroups().get("server"));
+        TestCase.assertNotNull(actual.getGroups().get("group1"));
         TestCase.assertNull(actual.getGroups().get("bi"));
     }
 
     @Test
     @Ignore
+    // NOTE: Function under test - singleGroupHealthStatus - is obsolete. Use getLatestValidGroupHealthStatus()
     public void testGetGroupHealthStatus() throws JsonParseException, JsonMappingException, IOException {
         HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd", new Date(1326979550000L), new Date(1326979550000L), 1000L), HealthStatusResponse.class);
         SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
@@ -173,4 +165,87 @@ public class RrdMonitoringServiceTest {
         }
         TestCase.assertEquals((c1Latest.getValue() + c3Latest.getValue()) / 2, groupLatest.getValue());
     }
+
+    @Test
+    public void testGetLatestValidGroupHealthStatusSimple() throws JsonParseException, JsonMappingException, IOException {
+        System.out.println("\n");
+        System.out.println("---------------ENTER testGetLatestValidGroupHealthStatus ----------------");
+
+        HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd",
+                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
+
+        Double c1FreeMem = Double.valueOf("3.6616192000e+07");
+        Double c2FreeMem = Double.valueOf("4.6634598400e+07");
+
+        TestCase.assertEquals(singleC1HealthStatus.getValues().get("value").get(0).getValue(), c1FreeMem);
+
+        HealthStatusResponse c2HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c2.com", "memory", "memory-free.rrd",
+                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleC2HealthStatus = c2HealthStatus.getMetrics().get(0);
+        TestCase.assertEquals(singleC2HealthStatus.getValues().get("value").get(0).getValue(), c2FreeMem);
+
+        HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd",
+                new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleGroupHealthStatus = groupHealthStatus.getMetrics().get(0);
+
+        TestCase.assertEquals(1, singleGroupHealthStatus.getValues().size());
+        TestCase.assertEquals((c1FreeMem + c2FreeMem)/2, singleGroupHealthStatus.getValues().get("value").get(0).getValue());
+    }
+
+    /*
+    @Test
+    public void testGetLatestValidGroupHealthStatusMultipleValuesAvailable() throws JsonParseException, JsonMappingException, IOException {
+        System.out.println("\n");
+        System.out.println("---------------ENTER testGetLatestValidGroupHealthStatus ----------------");
+
+        HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd",
+                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
+
+        Double c1FreeMem = Double.valueOf("3.6616192000e+07");
+        Double c2FreeMem = Double.valueOf("4.6634598400e+07");
+
+        TestCase.assertEquals(singleC1HealthStatus.getValues().get("value").get(0).getValue(), c1FreeMem);
+
+        HealthStatusResponse c2HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c2.com", "memory", "memory-free.rrd",
+                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleC2HealthStatus = c2HealthStatus.getMetrics().get(0);
+        TestCase.assertEquals(singleC2HealthStatus.getValues().get("value").get(0).getValue(), c2FreeMem);
+
+        HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd",
+                new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleGroupHealthStatus = groupHealthStatus.getMetrics().get(0);
+
+        TestCase.assertEquals(1, singleGroupHealthStatus.getValues().size());
+        TestCase.assertEquals((c1FreeMem + c2FreeMem)/2, singleGroupHealthStatus.getValues().get("value").get(0).getValue());
+    }
+
+    @Test
+    public void testGetLatestValidGroupHealthStatusNAValuesExist() throws JsonParseException, JsonMappingException, IOException {
+        System.out.println("\n");
+        System.out.println("---------------ENTER testGetLatestValidGroupHealthStatus ----------------");
+
+        HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd",
+                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
+
+        Double c1FreeMem = Double.valueOf("3.6616192000e+07");
+        Double c2FreeMem = Double.valueOf("4.6634598400e+07");
+
+        TestCase.assertEquals(singleC1HealthStatus.getValues().get("value").get(0).getValue(), c1FreeMem);
+
+        HealthStatusResponse c2HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c2.com", "memory", "memory-free.rrd",
+                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleC2HealthStatus = c2HealthStatus.getMetrics().get(0);
+        TestCase.assertEquals(singleC2HealthStatus.getValues().get("value").get(0).getValue(), c2FreeMem);
+
+        HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd",
+                new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleGroupHealthStatus = groupHealthStatus.getMetrics().get(0);
+
+        TestCase.assertEquals(1, singleGroupHealthStatus.getValues().size());
+        TestCase.assertEquals((c1FreeMem + c2FreeMem)/2, singleGroupHealthStatus.getValues().get("value").get(0).getValue());
+    }
+    */
 }

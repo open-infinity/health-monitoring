@@ -1,0 +1,169 @@
+---------------------------------------------
+Host list
+curl "http://10.33.208.122:8181/monitoring/hostlist"
+curl "http://10.33.208.101:8181/monitoring/hostlist"
+---------------------------------------------
+http://127.0.0.1:8181/monitoring/hostlist
+Response:
+{"responseStatus":0,"activeNodes":[{"ipAddress":"192.168.1.10","nodeName":
+"pp4.tieto.com","groupName":"PP"},{"ipAddress":"192.168.1.11","nodeName":"
+sso.tieto.com","groupName":"SSO"}],"inactiveNodes":[]}
+
+
+---------------------------------------------
+Host metric types:
+curl "http://10.33.208.102:8181/monitoring/metrictypes?hostName=ip-10-99-75-175"
+curl "http://10.33.208.101:8181/monitoring/metrictypes?hostName=ip-10-99-54-14"
+
+---------------------------------------------
+http://127.0.0.1:8181/monitoring/metrictypes?hostName=pp4.tieto.com
+(hostName : any hostname, from  hostlist response)
+Response:
+{"responseStatus":0,"metricTypes":["mysql-test","load","GenericJMX-requ
+est
+_processor-\"ajp-bio-9009\"","interface-eth0","df-sda1","interface-eth2","
+disk-dm-1","GenericJMX-request_processor-jk-8009","memory","GenericJMX-
+req
+uest_processor-\"http-bio-9080\"","disk-sda2","GenericJMX-memory","disk
+-dm
+-0","GenericJMX-request_processor-http-8080","disk-sda1","df-mapper_Vol
+Gro up-lv_root","disk-sda","interface-sit0","cpu-0","interface-lo"]}
+
+
+---------------------------------------------
+Host metric names
+curl "http://10.33.208.19:8181/monitoring/metricnames?hostName=ip-10-99-143-44&metricType=load"
+curl "http://10.33.208.101:8181/monitoring/metricnames?hostName=ip-10-99-58-14&metricType=load"
+
+---------------------------------------------
+http://127.0.0.1:8181/monitoring/metricnames?hostName=pp4.tieto.com&met
+ric Type=GenericJMX-memory (hostName : any hostname, from  hostlist
+response,
+metricType: any from Host metric types response)
+Response:
+{"responseStatus":0,"metricNames":["jmx_memory-heap-committed.rrd","jmx
+_me
+mory-nonheap-max.rrd","jmx_memory-nonheap-committed.rrd","jmx_memory-no
+nhe
+ap-used.rrd","jmx_memory-heap-used.rrd","jmx_memory-heap-init.rrd","jmx
+_me mory-heap-max.rrd","jmx_memory-nonheap-init.rrd"]}
+
+
+---------------------------------------------1369045648
+Host health status
+curl "http://10.33.208.102:8181/monitoring/healthstatus?hostName=ip-10-99-75-167&metricType=load&metricNames=load.rrd&startTime=0136904564800&endTime=1369045648000&step=100"
+curl "http://10.33.208.19:8181/monitoring/healthstatus?hostName=ip-10-99-143-44&metricType=load&metricNames=load.rrd&startTime=1369047770000&endTime=1369047770000&step=100"
+
+curl "http://10.33.208.248:8181/monitoring/healthstatus?hostName=ip-10-98-213-15&metricType=load&metricNames=load.rrd&startTime=1392358500148&endTime=1392358500148&step=100"
+
+
+
+1369047379
+curl "http://10.33.208.115:8181/monitoring/healthstatus?hostName=hmon1&metricType=cpu-0&metricNames=cpu-system.rrd&startTime=1351725959000&endTime=1351725969000&step=1"
+curl "http://10.33.208.106:8181/monitoring/healthstatus?hostName=hmon1&metricType=cpu-0&metricNames=cpu-system.rrd&startTime=1359095170379&endTime=1359095170379&step=1"
+
+{"responseStatus":0,"metrics":[{"responseStatus":0,"name":"load.rrd","values":{"midterm":[{"date":1343850000,"value":"NaN"},{"date":1370200000,"value":"NaN"}],"shortterm":[{"date":1343850000,"value":"NaN"},{"date":1370200000,"value":"NaN"}],"longterm":[{"date":1343850000,"value":"NaN"},{"date":1370200000,"value":"NaN"}]}}]}
+
+?? is time wrong or what?
+
+---------------------------------------------
+http://127.0.0.1:8181/monitoring/healthstatus?hostName=pp4.tieto.com&metricType=GenericJMX-memory&metricNames=jmx_memory-heap-committed.rrd%2Bjmx_memory-heap-used.rrd&startTime=1339080814951&endTime=1339080814951&step=1
+00 (hostName : any hostname, from  hostlist response, metricType: any
+from Host metric types response metricNames: '+' separated metric names
+from host metric names response, startTime and endTime: timestamps of
+requested period, step: step between response values)
+Response:
+{"responseStatus":0,"metrics":[{"responseStatus":0,"name":"jmx_memory-h
+eap
+-committed.rrd","values":{"value":[{"date":1339080750000,"value":"10379
+591
+68"},{"date":1339080820000,"value":"1037959168"}]}},{"responseStatus":0
+,"n
+ame":"jmx_memory-heap-used.rrd","values":{"value":[{"date":1339080750000,"
+value":"413115374.857"},{"date":1339080820000,"value":"384581660.343"}]
+}}]
+}
+
+---------------------------------------------
+Group list
+curl http://10.33.208.110:8181/monitoring/grouplist
+
+
+http://127.0.0.1:8181/monitoring/grouplist
+Response:
+{"responseStatus":0,"groups":{"PP":["pp4.tieto.com"],"SSO":["sso.tieto.
+com
+"]}}
+
+
+Group metric types
+
+http://10.33.208.110:8181/monitoring/groupmetrictypes?groupName=cluster_1097
+
+http://127.0.0.1:8181/monitoring/groupmetrictypes?groupName=PP
+Response:
+{"responseStatus":0,"metricTypes":["mysql-test","load","GenericJMX-requ
+est
+_processor-\"ajp-bio-9009\"","interface-eth0","df-sda1","interface-eth2","
+disk-dm-1","GenericJMX-request_processor-jk-8009","memory","GenericJMX-
+req
+uest_processor-\"http-bio-9080\"","disk-sda2","GenericJMX-memory","disk
+-dm
+-0","GenericJMX-request_processor-http-8080","disk-sda1","df-mapper_Vol
+Gro up-lv_root","disk-sda","interface-sit0","cpu-0","interface-lo"]}
+
+
+---------------------------------------------
+Group metric names:
+curl "http://10.33.208.111:8181/monitoring/groupmetricnames?groupName=cluster_1117&metricType=cpu-0"
+curl "http://10.33.208.248:8181/monitoring/groupmetricnames?groupName=cluster_173&metricType=cpu-0"
+
+
+ ip-10-99-44-222
+10.33.208.113cluster_1104
+
+http://127.0.0.1:8181/monitoring/groupmetricnames?groupName=PP&metricTy
+pe=
+GenericJMX-memory
+Response:
+{"responseStatus":0,"metricNames":["jmx_memory-heap-committed.rrd","jmx
+_me
+mory-nonheap-max.rrd","jmx_memory-nonheap-committed.rrd","jmx_memory-no
+nhe
+ap-used.rrd","jmx_memory-heap-used.rrd","jmx_memory-heap-init.rrd","jmx
+_me mory-heap-max.rrd","jmx_memory-nonheap-init.rrd"]}
+
+-------------------------------------------------
+Group health status:
+curl "http://10.33.208.19:8181/monitoring/healthstatus?hostName=ip-10-99-143-44&metricType=load&metricNames=load.rrd&startTime=1369047770000&endTime=1369047770000&step=100"
+curl "http://10.33.208.19:8181/monitoring/grouphealthstatus?groupName=cluster_1172&metricType=load&metricNames=load.rrd&startTime=1369047770000&endTime=1369047770000&step=1"
+
+
+curl "http://10.33.208.111:8181/monitoring/grouphealthstatus?groupName=cluster_1117&metricType=cpu-0&metricNames=cpu-idle.rrd&startTime=1366968721000&endTime=1366968991000&step=1"
+OK below
+curl  "http://10.33.208.107:8181/monitoring/grouphealthstatus?groupName=cluster_1106&metricType=cpu-0&metricNames=cpu-idle.rrd&startTime=1366957104668&endTime=1366960704668&step=100"
+
+
+http://127.0.0.1:8181/monitoring/grouphealthstatus?groupName=PP&metricType=GenericJMX-memory&metricNames=jmx_memory-heap-committed.rrd&startTime=1339080961161&endTime=1339080961161&step=100
+Response:
+{"responseStatus":0,"metrics":[{"responseStatus":0,"name":"jmx_memory-h
+eap
+-committed.rrd","values":{"value":[{"date":1339080960000,"value":"10379
+591 68"},{"date":1339081030000,"value":"1037959168"}]}}]}
+
+
+Notifications list:
+http://127.0.0.1:8181/monitoring/notifications?startTime=1339071302000&
+end
+Time=1339080922111  (start and end timestams of the range)
+Response: {"responseStatus":0,"notifications":[]}
+
+
+Metric boundaries:
+http://127.0.0.1:8181/monitoring/metricboundaries?metricType=GenericJMX
+-me
+mory
+Response: {"responseStatus":0,"boundaries":null}
+
+
+java -Xss256k -Xmx20m -Xms16m -XX:PermSize=12m -XX:MaxPermSize=18m -XX:+CMSClassUnloadingEnabled -XX:+UseCompressedOops -jar /opt/monitoring/lib/rrd-data-reader.jar

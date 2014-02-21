@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,11 @@ import org.openinfinity.healthmonitoring.model.Node;
 import org.openinfinity.healthmonitoring.model.RrdValue;
 
 import java.io.IOException;
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class RrdMonitoringServiceTest {
 
@@ -53,7 +57,7 @@ public class RrdMonitoringServiceTest {
         TestCase.assertEquals(0, nodeListResponse.getResponseStatus());
         TestCase.assertEquals(2, nodeListResponse.getActiveNodes().size());
         TestCase.assertEquals(1, nodeListResponse.getInactiveNodes().size());
-        
+
         Node inactiveNode = new Node();
         inactiveNode.setGroupName("group1");
         inactiveNode.setIpAddress("10.33.2.12");
@@ -100,8 +104,7 @@ public class RrdMonitoringServiceTest {
     }
 
     @Test
-    @Ignore
-    public void testGetHealthStatus() throws JsonParseException, JsonMappingException, IOException {
+    public void testGetHealthStatusFetchingRange() throws JsonParseException, JsonMappingException, IOException {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2012);
         calendar.set(Calendar.MONTH, Calendar.JANUARY);
@@ -121,8 +124,19 @@ public class RrdMonitoringServiceTest {
         TestCase.assertTrue(singleActual.getValues().containsKey("midterm"));
         TestCase.assertTrue(singleActual.getValues().containsKey("shortterm"));
         TestCase.assertTrue(singleActual.getValues().containsKey("longterm"));
-        TestCase.assertTrue(singleActual.getValues().get("midterm").contains(new RrdValue(new Date(1326866500000L), 0D)));
-        TestCase.assertTrue(singleActual.getValues().get("shortterm").contains(new RrdValue(new Date(1326866500000L), 0D)));
+
+        // Results are apparently rounded on 3rd decimal by jRRD. 0.005D should actually be 0.0046
+        TestCase.assertTrue(singleActual.getValues().get("midterm").contains(new RrdValue(new Date(1326870000000L), 0.016D)));
+        TestCase.assertTrue(singleActual.getValues().get("shortterm").contains(new RrdValue(new Date(1326870000000L), 0.005D)));
+    }
+
+    @Test
+    public void testGetHealthStatusFetchingPpd() throws JsonParseException, JsonMappingException, IOException {
+        Double c1FreeMem = Double.valueOf("3.6616192000e+07");
+        HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd",
+                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
+        SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
+        TestCase.assertEquals(singleC1HealthStatus.getValues().get("value").get(0).getValue(), c1FreeMem);
     }
 
     @Test
@@ -135,8 +149,16 @@ public class RrdMonitoringServiceTest {
     }
 
     @Test
+    public void testFindGroupMembers() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        String groupName = "group1";
+        Method method = monitoringService.getClass().getDeclaredMethod("findGroupMembers", String.class, boolean.class);
+        method.setAccessible(true);
+        List<Node> members = (List<Node>) method.invoke(monitoringService, groupName, true);
+        TestCase.assertEquals(2, members.size());
+    }
+
+    @Test
     @Ignore
-    // NOTE: Function under test - singleGroupHealthStatus - is obsolete. Use getLatestValidGroupHealthStatus()
     public void testGetGroupHealthStatus() throws JsonParseException, JsonMappingException, IOException {
         HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd", new Date(1326979550000L), new Date(1326979550000L), 1000L), HealthStatusResponse.class);
         SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
@@ -167,85 +189,34 @@ public class RrdMonitoringServiceTest {
     }
 
     @Test
-    public void testGetLatestValidGroupHealthStatusSimple() throws JsonParseException, JsonMappingException, IOException {
-        System.out.println("\n");
-        System.out.println("---------------ENTER testGetLatestValidGroupHealthStatus ----------------");
-
-        HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd",
-                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
-
-        Double c1FreeMem = Double.valueOf("3.6616192000e+07");
-        Double c2FreeMem = Double.valueOf("4.6634598400e+07");
-
-        TestCase.assertEquals(singleC1HealthStatus.getValues().get("value").get(0).getValue(), c1FreeMem);
-
-        HealthStatusResponse c2HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c2.com", "memory", "memory-free.rrd",
-                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleC2HealthStatus = c2HealthStatus.getMetrics().get(0);
-        TestCase.assertEquals(singleC2HealthStatus.getValues().get("value").get(0).getValue(), c2FreeMem);
-
+    public void testGetLatestValidGroupHealthStatusPpdFetching() throws JsonParseException, JsonMappingException, IOException {
         HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd",
                 new Date(1326979040000L), 10L), HealthStatusResponse.class);
         SingleHealthStatus singleGroupHealthStatus = groupHealthStatus.getMetrics().get(0);
 
         TestCase.assertEquals(1, singleGroupHealthStatus.getValues().size());
-        TestCase.assertEquals((c1FreeMem + c2FreeMem)/2, singleGroupHealthStatus.getValues().get("value").get(0).getValue());
+        TestCase.assertEquals((Double.valueOf("3.6616192000e+07") + Double.valueOf("4.6634598400e+07"))/2, singleGroupHealthStatus.getValues().get("value").get(0).getValue());
     }
 
-    /*
     @Test
     public void testGetLatestValidGroupHealthStatusMultipleValuesAvailable() throws JsonParseException, JsonMappingException, IOException {
-        System.out.println("\n");
-        System.out.println("---------------ENTER testGetLatestValidGroupHealthStatus ----------------");
+        Date endTime = new Date(1326979360000L);
+        Double c1PpdForEndTime = Double.valueOf("3.6667392000e+07");
+        Double c2PpdForEndTime = Double.valueOf("4.3223449600e+07");
 
-        HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd",
-                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
+        HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd", endTime, 10L), HealthStatusResponse.class);
 
-        Double c1FreeMem = Double.valueOf("3.6616192000e+07");
-        Double c2FreeMem = Double.valueOf("4.6634598400e+07");
-
-        TestCase.assertEquals(singleC1HealthStatus.getValues().get("value").get(0).getValue(), c1FreeMem);
-
-        HealthStatusResponse c2HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c2.com", "memory", "memory-free.rrd",
-                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleC2HealthStatus = c2HealthStatus.getMetrics().get(0);
-        TestCase.assertEquals(singleC2HealthStatus.getValues().get("value").get(0).getValue(), c2FreeMem);
-
-        HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd",
-                new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleGroupHealthStatus = groupHealthStatus.getMetrics().get(0);
-
-        TestCase.assertEquals(1, singleGroupHealthStatus.getValues().size());
-        TestCase.assertEquals((c1FreeMem + c2FreeMem)/2, singleGroupHealthStatus.getValues().get("value").get(0).getValue());
+        TestCase.assertEquals((c1PpdForEndTime + c2PpdForEndTime)/2, groupHealthStatus.getMetrics().get(0).getValues().get("value").get(0).getValue());
     }
 
     @Test
     public void testGetLatestValidGroupHealthStatusNAValuesExist() throws JsonParseException, JsonMappingException, IOException {
-        System.out.println("\n");
-        System.out.println("---------------ENTER testGetLatestValidGroupHealthStatus ----------------");
+        Date endTime = new Date(1326979360000L);
+        Double c1PpdForEndTime = Double.valueOf("3.6667392000e+07");
+        Double c2PpdForEndTime = Double.valueOf("4.3223449600e+07");
 
-        HealthStatusResponse c1HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c1.com", "memory", "memory-free.rrd",
-                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleC1HealthStatus = c1HealthStatus.getMetrics().get(0);
+        HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd", endTime, 10L), HealthStatusResponse.class);
 
-        Double c1FreeMem = Double.valueOf("3.6616192000e+07");
-        Double c2FreeMem = Double.valueOf("4.6634598400e+07");
-
-        TestCase.assertEquals(singleC1HealthStatus.getValues().get("value").get(0).getValue(), c1FreeMem);
-
-        HealthStatusResponse c2HealthStatus = mapper.readValue(monitoringService.getHealthStatus("c2.com", "memory", "memory-free.rrd",
-                new Date(1326979040000L), new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleC2HealthStatus = c2HealthStatus.getMetrics().get(0);
-        TestCase.assertEquals(singleC2HealthStatus.getValues().get("value").get(0).getValue(), c2FreeMem);
-
-        HealthStatusResponse groupHealthStatus = mapper.readValue(monitoringService.getLatestValidGroupHealthStatus("group1", "memory", "memory-free.rrd",
-                new Date(1326979040000L), 10L), HealthStatusResponse.class);
-        SingleHealthStatus singleGroupHealthStatus = groupHealthStatus.getMetrics().get(0);
-
-        TestCase.assertEquals(1, singleGroupHealthStatus.getValues().size());
-        TestCase.assertEquals((c1FreeMem + c2FreeMem)/2, singleGroupHealthStatus.getValues().get("value").get(0).getValue());
+        TestCase.assertEquals((c1PpdForEndTime + c2PpdForEndTime)/2, groupHealthStatus.getMetrics().get(0).getValues().get("value").get(0).getValue());
     }
-    */
 }

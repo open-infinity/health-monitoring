@@ -62,44 +62,23 @@ public class RrdDataParser {
 
     @SuppressWarnings("rawtypes")
     public static Map<String, List<RrdValue>> parseRrdFile(String fileName, Date startTime, Date endTime, long step, ConsolidationFunctionType consolidationFunc) {
-        /*
-        System.out.println("-----------------PRINTINT out data after RrdDataParser.parseRrdFile()-------------");
-        Set<String> keys = rrdData.keySet();
-        for (String key : keys){
-            System.out.println("Key:" + key);
-            List<RrdValue> list = rrdData.get(key);
-            for (RrdValue rrdvalue : list){
-                System.out.println("Value:" + rrdvalue.getValue());
-            }
-        }
-        System.out.println("-----------------END PRINT-------------");
-         */
         Map<String, List<RrdValue>> map = new HashMap<String, List<RrdValue>>();
         RRDatabase rrd = null;
         DataChunk chunk = null;
         try {
             if (new File(fileName).exists()) {
                 rrd = new RRDatabase(fileName);
-                System.out.println("File:" + fileName);
-                System.out.println("step:" + step);
-
                 chunk = rrd.getData(consolidationFunc, startTime, endTime, step);
                 if (chunk != null) {
                     Map[] arrayOfMap = chunk.toArrayOfMap();
-                    System.out.println("arrayOfMap len:" + arrayOfMap.length);
                     for (int i = 0; i < arrayOfMap.length; i++) {
                         Map m = arrayOfMap[i];
                         DataSource dataSource = rrd.getDataSource(i);
-                        System.out.println("dataSource:" +dataSource.getName() + " " + dataSource.getType());
                         if (!map.containsKey(dataSource.getName())) {
                             map.put(dataSource.getName(), new ArrayList<RrdValue>());
                         }
                         for (Object key : m.keySet()) {
-                            System.out.println("key:" + key + " class:" + key.getClass());
                             RrdValue rrdValue = new RrdValue((Date) key, (Double) m.get(key));
-                            System.out.println("m.get(key):" + m.get(key));
-                            System.out.println("(Double)m.get(key):" + ((Double) m.get(key)));
-
                             map.get(dataSource.getName()).add(rrdValue);
                         }
                     }

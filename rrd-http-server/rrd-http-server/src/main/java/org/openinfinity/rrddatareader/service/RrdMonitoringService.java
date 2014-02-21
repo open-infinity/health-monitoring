@@ -305,45 +305,19 @@ public class RrdMonitoringService implements MonitoringService {
         }
         return toJson(response);
     }
-    
 
-    /* This function fetches the latest available group status for give metric type.
-     * More details:Group status is calculated as average.
-     * For each node, the latest available metric is used for group average calculation.
-     */
-
-    // TODO: test me!
     @Override
-    public String getLatestValidGroupHealthStatus(String groupName, String metricType, String metricNames, Date endTime, Long step) {
-
-        LOGGER.trace("--------------------------------------------------------------------------");
-        LOGGER.trace("getLatestValidGroupHealthStatus() ENTER");
-        LOGGER.trace("--------------------------------------------------------------------------");
+    public String getLatestValidGroupHealthStatus(String groupName, String metricType, String rrdFileNames, Date endTime, Long step) {
 
         HealthStatusResponse response = new HealthStatusResponse();
-
         Date startTime = new Date(endTime.getTime() - PERIOD);
         List<Node> members = findGroupMembers(groupName, true);
 
-        LOGGER.trace("--------------------------------------------------------------------------");
-        LOGGER.trace("Looping metrics start");
-        LOGGER.trace("--------------------------------------------------------------------------");
-        for (String metricName : metricNames.split(METRIC_NAME_DELIMITER)) {
-            LOGGER.trace("--------------------------------------------------------------------------");
-            LOGGER.trace("Processing metric {}", metricName);
-            LOGGER.trace("--------------------------------------------------------------------------");
+        for (String rrdFileName : rrdFileNames.split(METRIC_NAME_DELIMITER)) {
             SingleHealthStatus status = new SingleHealthStatus();
 
-            if (LOGGER.isTraceEnabled()){
-                LOGGER.trace("--------------------------------------------------------------------------");
-                LOGGER.trace("Group members");
-                LOGGER.trace("--------------------------------------------------------------------------");
-                for (Node n : members){
-                    LOGGER.trace(n.getNodeName());
-                }
-            }
-
             /* Map that contains combined metric values.
+            *  metricType is e.g. "memory" or "load"
             * There are several subTypes for each combined metric type.
             * For load, it's short, mid and long term metrics.
             *
@@ -362,26 +336,14 @@ public class RrdMonitoringService implements MonitoringService {
 
                 @Override
                 public List<RrdValue> put(String key, List<RrdValue> newRrdValues) {
-                    LOGGER.trace("--------------------------------------------------------------------------");
-                    LOGGER.trace("put() ENTER");
-                    LOGGER.trace("--------------------------------------------------------------------------");
-
                     Collections.sort(newRrdValues, new Comparator<RrdValue>() {
 
                         @Override
                         public int compare(RrdValue o1, RrdValue o2) {
-                            LOGGER.trace("--values--");
-                            LOGGER.trace(Double.toString(o1.getValue()));
-                            LOGGER.trace(Double.toString(o2.getValue()));
-                            LOGGER.trace("o1:{}, date:{}", String.valueOf(o1.getValue()), o1.getDate());
-                            LOGGER.trace("o2:{}, date:{}", String.valueOf(o2.getValue()), o2.getDate());
-
                             if (Double.isNaN(o1.getValue())){
-                                LOGGER.trace("o1 is NaN");
                                 return 1;
                             }
                             if (Double.isNaN(o2.getValue())){
-                                LOGGER.trace("o2 is NaN");
                                 return -1;
                             }
                             if(o1.getDate() > o2.getDate() ){
@@ -397,53 +359,17 @@ public class RrdMonitoringService implements MonitoringService {
                     // If there are no previous entries for a subType, just put the new sorted list in the map and return
                     List<RrdValue> sortedGroupValuesList = get(key);
                     if (sortedGroupValuesList == null) {
-                        LOGGER.trace("Result list is empty");
-                        LOGGER.trace("put() EXIT");
                         return super.put(key, newRrdValues);
                     }
 
-                    LOGGER.trace("Log lists before adding next node data");
-                    if (LOGGER.isTraceEnabled()){
-
-                        // Show sortedGroupValuesList - list with accumulated values
-                        LOGGER.trace("--------------------------------------------------------------------------");
-                        LOGGER.trace("Logging sortedGroupValuesList before adding next node data");
-                        LOGGER.trace("--------------------------------------------------------------------------");
-
-                        for (RrdValue rrdV : sortedGroupValuesList){
-                            LOGGER.trace("totalsList item: value:{}, date:{}", rrdV.getValue(), String.valueOf(rrdV.getDate()));
-                        }
-
-                        // Show newRrdValues - list with new values
-                        LOGGER.trace("--------------------------------------------------------------------------");
-                        LOGGER.trace("Logging newly added and sorted list - after adding next node data");
-                        LOGGER.trace("--------------------------------------------------------------------------");
-                        for (RrdValue rrdV : newRrdValues){
-                            LOGGER.trace("newRrdValues item: value:{}, date:{}", String.valueOf( (double)rrdV.getValue()), String.valueOf(rrdV.getDate()));
-                        }
-                    }
-
                     // Find the newest value in the new list
-                    /*
-                    RrdValue subTypeValue = null;
-                    for (RrdValue rrdV : newRrdValues){
-                        LOGGER.trace("Value single:{}", String.valueOf((double)rrdV.getValue()));
-                        if (!Double.isNaN(rrdV.getValue())){
-                            LOGGER.trace("Found value:{q}", String.valueOf((double)rrdV.getValue()));
-                            subTypeValue = rrdV;
-                            break;
-                        }
-                        LOGGER.trace("Found NaN");
-                    }
-                    */
                     // It's already sorted
                     RrdValue subTypeValue = newRrdValues.get(0);
-                    
+
                     // Use the newest metric - position 0 in the sortedGroupValuesList (it was already sorted)
                     RrdValue totalValue = sortedGroupValuesList.get(0);
-                    LOGGER.trace("totalValue:{}", totalValue.getValue());
                     long svDate = subTypeValue.getDate();
-                    
+
                     // Set time stamp to the oldest value of two
                     if (svDate < totalValue.getDate()){
                         totalValue.setDate(svDate);
@@ -451,20 +377,6 @@ public class RrdMonitoringService implements MonitoringService {
                     totalValue.setValue(totalValue.getValue() + subTypeValue.getValue());
                     sortedGroupValuesList.set(0, totalValue);
 
-                    // Log lists 
-                    if (LOGGER.isTraceEnabled()){
-                        LOGGER.trace("--------------------------------------------------------------------------");
-                        LOGGER.trace("Log sortedGroupValuesList after adding next node data");
-                        LOGGER.trace("--------------------------------------------------------------------------");
-                        for (RrdValue rrdV : sortedGroupValuesList){
-                            LOGGER.trace("totalsList item: value:{}", rrdV.getValue());
-                            LOGGER.trace("totalsList item: date:{}", String.valueOf( rrdV.getDate() ));
-                        }
-                    }
-
-                    LOGGER.trace("--------------------------------------------------------------------------");
-                    LOGGER.trace("put() EXIT");
-                    LOGGER.trace("--------------------------------------------------------------------------");
                     return sortedGroupValuesList;
                 }
             };
@@ -477,50 +389,33 @@ public class RrdMonitoringService implements MonitoringService {
                 the new rrd list.
             */
             for (Node node : members) {
-                String fileName = composeRrdDBFileName(PropertiesReader.getString("rrdDirectoryPath"), node.getNodeName(), metricType, metricName);
-                LOGGER.trace("Processing node");
-                LOGGER.trace("Node name: {}", node.getNodeName());
-                LOGGER.trace("parseRrdFile start time {}", startTime.getTime());
-                LOGGER.trace("parseRrdFile time {}", endTime.getTime());
+                String fileName = composeRrdDBFileName(PropertiesReader.getString("rrdDirectoryPath"), node.getNodeName(), metricType, rrdFileName);
 
                 // Fetch metrics for a node
                 Map<String, List<RrdValue>> rrdData = RrdDataParser.parseRrdFile(fileName, startTime, endTime, step, ConsolidationFunctionType.AVERAGE);
-                
+
                 if (rrdData != null){
                     for (String metricSubName : rrdData.keySet()) {
                         List<RrdValue> values = rrdData.get(metricSubName);
-                        LOGGER.trace("List<RrdValue> values size:{}", values.size());
-                        LOGGER.trace("--------------------------------------------------------------------------");
-                        LOGGER.trace("Put for metric subname:{}", metricSubName);
-                        LOGGER.trace("--------------------------------------------------------------------------");
                         groupAverageMap.put(metricSubName, values);
                     }
                 }
                 else{
                     metricsAvailable = false;
-                    LOGGER.trace("No metrics found for all group members");
                     break;
                 }
             }
 
             if (!metricsAvailable){
-                LOGGER.trace("Metrics not available");
                 status.setResponseStatus(AbstractResponse.STATUS_METRIC_FAIL);
             }
             else{
                 status.setResponseStatus(AbstractResponse.STATUS_OK);
                 status.setValues(calculateAverageStats(groupAverageMap, members.size()));
-                status.setName(metricName);
+                status.setName(rrdFileName);
             }
             response.getMetrics().add(status);
-            LOGGER.trace("--------------------------------------------------------------------------");
-            LOGGER.trace("Looping metrics end");
-            LOGGER.trace("--------------------------------------------------------------------------");
         }
-        LOGGER.trace("--------------------------------------------------------------------------");
-        LOGGER.trace("getLatestValidGroupHealthStatus() EXIT");
-        LOGGER.trace("--------------------------------------------------------------------------");
-
         return toJson(response);
     }
     
@@ -531,14 +426,11 @@ public class RrdMonitoringService implements MonitoringService {
         Map<String, List<RrdValue>> avg = new HashMap<>();
         
         for (String key : total.keySet()) {
-            LOGGER.trace("key:{}", key);
             List<RrdValue> rrdValueList = total.get(key);
             RrdValue rrdValue = rrdValueList.get(0);
-            LOGGER.trace("rrdValue: {}", rrdValue.getValue());
             double value = rrdValue.getValue();
             rrdValue.setValue(value / clusterSize); 
-            LOGGER.trace("value/clusterSize:{}", rrdValue.getValue());
-            
+
             List<RrdValue> avgValueList = new ArrayList<RrdValue>();
             avgValueList.add(rrdValue);
             avg.put(key, avgValueList);

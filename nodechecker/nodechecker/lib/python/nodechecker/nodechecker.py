@@ -54,7 +54,8 @@ heartbeat_timer = None
 heartbeat_listener = None
 ntf_reader = None
 nodelist_reader = None
-mail_sender = None
+#mail_sender = None
+ntf_manager = None
 conf = None
 my_node = None
 dead_node_timer = None
@@ -166,7 +167,8 @@ def check_node_still_dead(node_to_check):
             dead_node_set.add(node_to_check.ip_address)
             send(node_list, util.json_from_list(
                   active_node_list, 'active_node_list'))
-            mail_sender.send_node_status_alerts([node_to_check], "DEAD_NODE")
+            #mail_sender.send_node_status_alerts([node_to_check], "DEAD_NODE")
+            ntf_manager.process_node_status_alerts([node_to_check], "DEAD_NODE")
             util.store_list_to_file(
                   active_node_list, ACTIVE_NODE_LIST_FILE, my_node.group_name)
         new_dead_node_set.remove(node_to_check.ip_address)
@@ -262,12 +264,16 @@ def dead_node_scan():
                   active_node_list, ACTIVE_NODE_LIST_FILE, my_node.group_name)
 
             if resurrected_node_list:
-                mail_sender.send_node_status_alerts(
+                #mail_sender.send_node_status_alerts(
+                #     resurrected_node_list, "RESURRECTED_NODE")
+                ntf_manager.process_node_status_alerts(
                      resurrected_node_list, "RESURRECTED_NODE")
 
             if dead_node_list:
-                mail_sender.send_node_status_alerts(
-                     dead_node_list, "DEAD_NODE")
+                #mail_sender.send_node_status_alerts(
+                #     dead_node_list, "DEAD_NODE")
+                ntf_manager.process_node_status_alerts(
+                    dead_node_list, "DEAD_NODE")
 
     except:
         shutdown(sys.exc_info())
@@ -414,7 +420,8 @@ def master_loop():
         node_list_changed = update_node_collections(node_list)[0]
 
         # 3) Process notifications
-        mail_sender.send_notifications(ntf_reader.get_notifications(node_list))
+        #mail_sender.send_notifications(ntf_reader.get_notifications(node_list))
+        ntf_manager.process_notifications(ntf_reader.get_notifications(node_list))
 
         # 4) Send and store changes
         if node_list_changed:
@@ -629,7 +636,7 @@ def set_master():
 
 
 def init(settings):
-    global my_node, ntf_reader, nodelist_reader, mail_sender, conf
+    global my_node, ntf_reader, nodelist_reader, ntf_manager, conf
     global heartbeat_listener, active_node_list, dead_node_set, node_list
     global heartbeats_received, master_list, lock_resources
 
@@ -654,7 +661,8 @@ def init(settings):
     # Construct remaining members
     lock_resources = threading.RLock()
     ntf_reader = notifier.notificationreader.NotificationReader(my_node, conf)
-    mail_sender = notifier.mailsender.MailSender(conf, my_node)
+    #mail_sender = notifier.mailsender.MailSender(conf, my_node)
+    ntf_manager = notifier.notificationmanager.NotificationManager(my_node, conf)
     heartbeat_listener = listener.HeartbeatListener(my_node,
                                                     heartbeats_received,
                                                     master_list,

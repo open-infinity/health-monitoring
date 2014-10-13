@@ -12,7 +12,6 @@ ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
 MSG_DELIMITER = '-----------------------------------------------' \
                 '------------------'
 
-
 class MailSender(object):
     def __init__(self, conf, node):
         self.conf = conf
@@ -22,7 +21,7 @@ class MailSender(object):
         self.logger = logging.getLogger('nodechecker.mailsender')
         self.logger.info('creating an instance of nodechecker.mailsender')
 
-    def send_notifications(self, notification_list):
+    def send(self, notification_list):
         if notification_list:
             try:
                 msg = email.mime.text.MIMEText(
@@ -35,20 +34,20 @@ class MailSender(object):
                       self.conf.email_from, self.conf.email_to,
                       msg.as_string())
                 s.quit()
-                self.move_sent_items(notification_list)
+                #self.move_sent_items(notification_list)
             except:
                 nodechecker.util.log_exception(sys.exc_info())
 
-    def send_node_status_alerts(self, node_list, category):
-        notification_list = []
-        try:
-            for n in node_list:
-                new_notification = notification.Notification()
-                notification_list.append(
-                      new_notification.from_node(n, category))
-            self.send_notifications(notification_list)
-        except:
-            nodechecker.util.log_exception(sys.exc_info())
+    # def process_node_status_alerts(self, node_list, category):
+    #     notification_list = []
+    #     try:
+    #         for n in node_list:
+    #             new_notification = notification.Notification()
+    #             notification_list.append(
+    #                   new_notification.from_node(n, category))
+    #         self.send_notifications(notification_list)
+    #     except:
+    #         nodechecker.util.log_exception(sys.exc_info())
 
     def format_email_message(self, notification_list):
         # Message header
@@ -98,14 +97,17 @@ class MailSender(object):
         msg_body = "".join(msg_body_items)
         return msg_header + msg_sender_info + msg_body
 
-    def move_sent_items(self, notification_list):
-        try:
-            for n in notification_list:
-                if n.file_path:
-                    os.rename(n.file_path, os.path.join(
-                          os.environ[ENV_HM_HOME_DIR],
-                          self.conf.notifications_home,
-                          self.conf.notifications_sent_dir,
-                          n.file_name))
-        except:
-            nodechecker.util.log_exception(sys.exc_info())
+    # def move_sent_items(self, notification_list):
+    #     try:
+    #         for n in notification_list:
+    #             if n.file_path:
+    #                 os.rename(n.file_path, os.path.join(
+    #                       os.environ[ENV_HM_HOME_DIR],
+    #                       self.conf.notifications_home,
+    #                       self.conf.notifications_sent_dir,
+    #                       n.file_name))
+    #             #should log notification not originating from collect too
+    #             else:
+    #                 pass
+    #     except:
+    #         nodechecker.util.log_exception(sys.exc_info())

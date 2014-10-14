@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 import smtplib
-import os
+#import os
 import sys
 import logging
 import email.mime.text

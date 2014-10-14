@@ -1,6 +1,6 @@
 Name:           oi3-rrd-http-server
-Version:        3.0.0
-Release:        3%{?dist}
+Version:        3.1.0
+Release:        2%{?dist}
 Summary:        HTTP Server for rrd data gathered by Health Monitoring for Open Infinity
 BuildArch:      x86_64
 License:        Apache 
@@ -9,7 +9,7 @@ Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{release}-root-%(%{__id_u} -n)
 Requires:       java-1.7.0-openjdk, jakarta-commons-daemon-jsvc >= 1.0.1, oi3-nodechecker
 
-%global installation_dir opt/openinfinity/3.0.0/healthmonitoring
+%global installation_dir opt/openinfinity/3.1.0/healthmonitoring
 
 %description
 The http server for rrd data gathered by Health Monitoring for Open Infinity
@@ -49,6 +49,9 @@ fi
 exit 0
 
 %changelog
+* Fri Jun 13 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 3.1.0-1
+- Version change to 3.1.0. Installation path changed accordinglly.
+
 * Wed Dec 18 2013 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 3.0.0-1
 - Version change. Macro for path and version. Java version changed to 1.7. User changed to oiuser.
 

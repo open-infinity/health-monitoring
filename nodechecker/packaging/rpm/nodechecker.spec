@@ -1,6 +1,6 @@
 Name:           oi3-nodechecker
-Version:        3.0.0
-Release:        13%{?dist}
+Version:        3.1.0
+Release:        3%{?dist}
 Summary:        Main Health Monitoring package for Open Infinity
 BuildArch:      x86_64
 License:        Apache 2.0
@@ -9,7 +9,7 @@ Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{release}-root-%(%{__id_u} -n)
 Requires:       java-1.7.0-openjdk, Pound, python => 2.6
 
-%global installation_path opt/openinfinity/3.0.0/healthmonitoring
+%global installation_path opt/openinfinity/3.1.0/healthmonitoring
 %global installation_dir %{buildroot}/%{installation_path}
 
 %description
@@ -63,6 +63,8 @@ chmod 755 %{_initddir}/oi3-healthmonitoring
 chmod 777 %{installation_path}/nodechecker/var/lib/notifications/inbox
 chmod 777 %{installation_path}/nodechecker/var/lib/notifications/sent
 chmod 755 /usr/local/bin/notify
+chown -R oiuser %{installation_path}
+
 /sbin/chkconfig --add oi3-healthmonitoring
 /sbin/chkconfig oi3-healthmonitoring on
 
@@ -79,8 +81,11 @@ if [ "$1" -ge "1" ] ; then
 fi
 
 %changelog
+* Fri Jun 13 2014 Version update <vbartoni@gmail.com> - 3.1.0-1
+- Set version to 3.1.0. Updated installation path
+
 * Wed Jan 08 2014 Macros <vbartoni@gmail.com> - 3.0.0-9
-- Usage of macros. Init files moved ro rc.d/init.d. %postun part added, to control package upgrade.
+- Usage of macros. Init files moved to rc.d/init.d. %postun part added, to control package upgrade.
 
 * Wed Dec 18 2013 Version update <vedran.bartonicek@tieto.com> - 3.0.0-1
 - Installation path changed. Java upgrade to 1.7. Macro for installation path.

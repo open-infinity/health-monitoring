@@ -1,7 +1,7 @@
 
 Name:           oi3-collectd
 Version:        5.4.0
-Release:        8%{?dist}
+Release:        12%{?dist}
 Summary:        Collectd built and configured for Open Infinity
 BuildArch:      x86_64
 Group:          Applications
@@ -13,11 +13,15 @@ BuildRequires:  perl-ExtUtils-MakeMaker >= 6.5
 BuildRequires:  perl-ExtUtils-Embed >= 1.28
 BuildRequires:  gcc >= 4
 BuildRequires:  make >= 3.81
-BuildRequires:  java-1.7.0-openjdk-devel
+BuildRequires:  java-1.7.0-openjdk-devel 
+BuildRequires:  flex >= 2.5
+BuildRequires:  byacc >= 1.9
+BuildRequires:  libtool >= 2.2.6 
+BuildRequires:  glib2-devel >= 2.26.1
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-%global installation_path /opt/openinfinity/3.0.0/healthmonitoring
+%global installation_path /opt/openinfinity/3.1.0/healthmonitoring
 
 %description
 Collectd built and configured for Open Infinity
@@ -27,7 +31,7 @@ Collectd built and configured for Open Infinity
 
 %build
 ./build.sh
-./configure --prefix %{installation_path}/collectd --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.45.x86_64/ --enable-rrdtool --enable-debug --enable-java
+./configure --prefix %{installation_path}/collectd --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.55.x86_64/ --enable-rrdtool --enable-debug --enable-java
 make
 
 %install
@@ -63,7 +67,11 @@ fi
 exit 0
 
 %changelog
-* Thu Jan 14 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.4.4-7
+* Thu Jun 12 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.4.0-9
+- Using collectd 5.4.0, commit 4c6303ec6be673df6c9e0964dfc9419c697bf47c.
+A version update to 3.1.0 for open infinity. Installation path updated too.
+
+* Thu Jan 14 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.4.0-7
 - Using collectd 5.4.0, commit 4c6303ec6be673df6c9e0964dfc9419c697bf47c. It
 has integrated pull request #498 that brings relative load functionality.
 Therefore no need to use pathes for load and df. 

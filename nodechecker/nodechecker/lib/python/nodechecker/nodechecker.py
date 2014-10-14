@@ -17,7 +17,7 @@ import threading
 import time
 import config
 import notifier.notificationreader
-import notifier.mailsender
+import notifier.notificationmanager
 import functools
 import reader
 import util

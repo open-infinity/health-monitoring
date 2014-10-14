@@ -25,13 +25,13 @@ class JsonEncoder(json.JSONEncoder):
         return obj.__dict__
 
 class NotificationLogger(object):
-    def __init__(self, node, config):
+    def __init__(self, config, node):
         self.logger = logging.getLogger('nodechecker.notificationlogger')
-        self.ntf_logger = self.configure_logger()
         self.node = node
         self.config = config
+        self.ntf_logger = self.configure_logger()
 
-    def process_notifications(self, notification_list):
+def process_notifications(self, notification_list):
         if notification_list:
             try:
                 log = json.dumps(JsonWrapper(self.node, notification_list),

@@ -25,8 +25,9 @@ class Config(object):
 
         self.notifications_log_file = config.get('notifications', 'log_file')
         self.notifications_log_file_max_bytes = config.get('notifications', 'log_file_max_bytes')
+        self.notifications_log_file_backup_count = config.get('notifications', 'log_file_backup_count')
         self.notifications_home_dir = config.get('notifications', 'home_dir')
-        self.notification_inbox_dir = config.get('notifications', 'inbox_dir')
+        self.notifications_inbox_dir = config.get('notifications', 'inbox_dir')
         self.notifications_sent_dir = config.get('notifications', 'sent_dir')
         self.notifications_dead_node_string = config.get('notifications', 'dead_node_string')
 

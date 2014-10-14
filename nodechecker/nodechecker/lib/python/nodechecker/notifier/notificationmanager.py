@@ -14,7 +14,7 @@ class NotificationManager(object):
     def __init__(self, node, conf):
         self.conf = conf
         self.node = node
-        self.mail_sender = self.create_mail_sender(conf, node)
+        self.mail_sender = self.create_mail_sender()
         self.notification_logger = notificationlogger.\
                 NotificationLogger(self.conf, self.node)
 
@@ -34,14 +34,9 @@ class NotificationManager(object):
         #     self.mail_sender.process_node_status_alerts(node_list, category)
         # self.move_sent_items(notification_list)
 
-    def create_mail_sender(self):
+    def create_mail_sender(self, node):
         if self.conf.email_use == 'yes':
             return mailsender.MailSender(self.conf, self.node)
-        return None
-
-    def create_notification_logger(self):
-        if self.conf.notification_logging == 'yes':
-            return notificationlogger.NotificationLogger(self.conf, self.node)
         return None
 
     def move_processed_notifications(self, notification_list):

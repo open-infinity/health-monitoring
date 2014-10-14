@@ -23,13 +23,14 @@ class Config(object):
         self.node_rrd_scan_period = config.get('node', 'rrd_scan_period')
         self.node_dead_node_timeout = config.get('node', 'dead_node_timeout')
 
-        self.notifications_home = config.get(
-              'notifications', 'notifications_home')
-        self.notifications_dead_node_string = config.get(
-              'notifications', 'dead_node_string')
-        self.notifications_inbox_dir = config.get('notifications', 'inbox_dir')
+        self.notifications_log_file = config.get('notifications', 'log_file')
+        self.notifications_log_file_max_bytes = config.get('notifications', 'log_file_max_bytes')
+        self.notifications_home_dir = config.get('notifications', 'home_dir')
+        self.notification_inbox_dir = config.get('notifications', 'inbox_dir')
         self.notifications_sent_dir = config.get('notifications', 'sent_dir')
+        self.notifications_dead_node_string = config.get('notifications', 'dead_node_string')
 
+        self.email_use = config.get('email', 'use')
         self.email_subject = config.get('email', 'subject')
         self.email_from = config.get('email', 'from')
         self.email_to = config.get('email', 'to')

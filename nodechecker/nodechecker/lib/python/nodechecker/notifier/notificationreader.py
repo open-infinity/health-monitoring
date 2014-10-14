@@ -19,7 +19,7 @@ class NotificationReader(object):
         self.eol = "\n"
         self.text_separator = ":"
         self.inbox = os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT],
-                                  config.notifications_home,
+                                  config.notifications_home_dir,
                                   config.notifications_inbox_dir)
 
     def get_notifications(self, node_list):

@@ -50,7 +50,7 @@ class NotificationManager(object):
                 if n.file_path:
                     os.rename(n.file_path, os.path.join(
                         os.environ[ENV_HM_HOME_DIR],
-                        self.conf.notifications_home,
+                        self.conf.notifications_home_dir,
                         self.conf.notifications_sent_dir,
                         n.file_name))
                 else:

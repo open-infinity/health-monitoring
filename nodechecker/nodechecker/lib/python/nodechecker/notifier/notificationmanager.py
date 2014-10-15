@@ -35,7 +35,7 @@ class NotificationManager(object):
         #     self.mail_sender.process_node_status_alerts(node_list, category)
         # self.move_sent_items(notification_list)
 
-    def create_mail_sender(self, node):
+    def create_mail_sender(self):
         if self.conf.email_use == 'yes':
             return mailsender.MailSender(self.conf, self.node)
         return None

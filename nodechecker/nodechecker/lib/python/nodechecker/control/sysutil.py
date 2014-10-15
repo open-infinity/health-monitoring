@@ -2,6 +2,5 @@
 
 import subprocess
 
-
 def systemV_service_command(service, command):
     subprocess.Popen(['service', service, command])

@@ -81,7 +81,7 @@ logfile = ""
 def send(to_nodes, data):
     try:
         if len(to_nodes) > 0:
-            logger.debug("Sending data data %s" % str(data))
+            logger.debug("Sending data %s" % str(data))
             for n in to_nodes:
                 if n != my_node:
                     logger.debug("Sending to node %s" % str(n.ip_address))

@@ -31,10 +31,10 @@ def stop_health_monitoring():
 
 
 def start_nodechecker():
-    daemon = NodecheckerDaemon(NODECHECKER_PID_FILE)
-    daemon.start()
+    nodechecker_daemon = NodecheckerDaemon(NODECHECKER_PID_FILE)
+    nodechecker_daemon.start()
 
 
 def stop_nodechecker():
-    daemon = NodecheckerDaemon(NODECHECKER_PID_FILE)
-    daemon.stop()
+    nodechecker_daemon = NodecheckerDaemon(NODECHECKER_PID_FILE)
+    nodechecker_daemon.stop()

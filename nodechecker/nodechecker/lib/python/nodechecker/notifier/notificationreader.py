@@ -86,4 +86,5 @@ class NotificationReader(object):
             if n.hostname == ntfc.hostname:
                 ntfc.add_origin_node_parameters(n)
                 return ntfc
+        self.logger.error("Notification creation failed: notification origin node not in node list.")
         return None

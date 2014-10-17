@@ -17,6 +17,7 @@ ARGS=""
 prog="collectd"
 CONFIG=$OI_COLLECTD_ROOT/etc/collectd.conf
 PIDFILE=$OI_COLLECTD_ROOT/var/run/collectd.pid
+export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server/
 
 start () {
         echo -n $"Starting $prog: "

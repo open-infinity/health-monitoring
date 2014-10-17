@@ -25,9 +25,9 @@ def start_health_monitoring():
 
 def stop_health_monitoring():
     stop_nodechecker()
-    sysutil.systemV_service_command('oi3-rrd-http-server', 'stop')
-    sysutil.systemV_service_command('oi3-collectd', 'stop')
-    sysutil.systemV_service_command('pound', 'stop')
+    sysutil.system_v_service_command('oi3-rrd-http-server', 'stop')
+    sysutil.system_v_service_command('oi3-collectd', 'stop')
+    sysutil.system_v_service_command('pound', 'stop')
 
 
 def start_nodechecker():

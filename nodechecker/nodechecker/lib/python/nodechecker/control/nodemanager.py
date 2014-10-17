@@ -19,12 +19,12 @@ logger = logging.getLogger('nodechecker.nodemanager')
 
 def configure_node_as_master(own_ip):
     configure_and_restart_collectd(own_ip, "server")
-    sysutil.systemV_service_command('oi3-rrd-http-server', 'start')
-    sysutil.systemV_service_command('pound', 'stop')
+    sysutil.system_v_service_command('oi3-rrd-http-server', 'start')
+    sysutil.system_v_service_command('pound', 'stop')
 
 
 def configure_node_as_slave(own_ip, own_port, server_ip, server_port):
-    sysutil.systemV_service_command('oi3-rrd-http-server', 'stop')
+    sysutil.system_v_service_command('oi3-rrd-http-server', 'stop')
     configure_and_restart_collectd(server_ip, "client")
     configure_and_restart_pound(own_ip, own_port, server_ip, server_port)
 
@@ -51,7 +51,7 @@ def configure_and_restart_collectd(ip, mode):
                     print line,
     except:
         nodechecker.util.log_exception(sys.exc_info())
-    sysutil.systemV_service_command('oi3-collectd', 'restart')
+    sysutil.system_v_service_command('oi3-collectd', 'restart')
 
 
 def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
@@ -73,4 +73,4 @@ def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
                 print line,
     except:
         nodechecker.util.log_exception(sys.exc_info())
-    sysutil.systemV_service_command('pound', 'restart')
+    sysutil.system_v_service_command('pound', 'restart')

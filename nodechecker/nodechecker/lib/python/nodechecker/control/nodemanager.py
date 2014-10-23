@@ -5,26 +5,25 @@ import sys
 import logging
 import shutil
 import fileinput
-import sysutil
 import nodechecker.util
+import subprocess
 
-OI_HEALTH_MONITORING_ROOT = os.environ["OI_HEALTH_MONITORING_ROOT"]
-OI_COLLECTD_ROOT = os.environ["OI_COLLECTD_ROOT"]
-RRD_DIR = os.path.join(OI_COLLECTD_ROOT, "var/lib/collectd/rrd")
-POUND_TPL_FILE = "var/share/pound/pound.cfg.tpl"
-POUND_CFG_FILE = "/etc/pound.cfg"
+OI_ROOT = os.environ["OI_ROOT"]
+RRD_DIR = os.path.join(OI_ROOT, "healthmonitoring/collectd/var/lib/collectd/rrd")
+POUND_TPL_FILE = os.path.join(OI_ROOT, "nodechecker/var/share/pound/pound.cfg.tpl")
+POUND_CFG_FILE = os.path.join(OI_ROOT, "healthmonitoring/pound/etc/pound.cfg")
 
 logger = logging.getLogger('nodechecker.nodemanager')
 
 
 def configure_node_as_master(own_ip):
     configure_and_restart_collectd(own_ip, "server")
-    sysutil.system_v_service_command('oi3-rrd-http-server', 'start')
-    sysutil.system_v_service_command('pound', 'stop')
+    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/pound/bin/stop.sh")])
+    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/rrd-http-server/bin/start.sh")])
 
 
 def configure_node_as_slave(own_ip, own_port, server_ip, server_port):
-    sysutil.system_v_service_command('oi3-rrd-http-server', 'stop')
+    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/rrd-http-server/bin/stop.sh")])
     configure_and_restart_collectd(server_ip, "client")
     configure_and_restart_pound(own_ip, own_port, server_ip, server_port)
 
@@ -35,8 +34,8 @@ def configure_and_restart_collectd(ip, mode):
         logger.error("Error configuring collectd")
         return
     tpl_file = "var/share/collectd/%s.tpl" % (mode)
-    src = os.path.join(OI_HEALTH_MONITORING_ROOT, tpl_file)
-    dst = os.path.join(OI_COLLECTD_ROOT, "etc/collectd.d/network.conf")
+    src = os.path.join(OI_ROOT, "healthmonitoring/nodechecker", tpl_file)
+    dst = os.path.join(OI_ROOT, "healthmonitoring/collectd/etc/collectd.d/network.conf")
     try:
         shutil.copyfile(src, dst)
         for line in fileinput.input(dst, inplace=1):
@@ -51,16 +50,14 @@ def configure_and_restart_collectd(ip, mode):
                     print line,
     except:
         nodechecker.util.log_exception(sys.exc_info())
-    sysutil.system_v_service_command('oi3-collectd', 'restart')
+    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/collectd/sbin/restart.sh")])
 
 
 def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
     global logger
-    src = os.path.join(OI_HEALTH_MONITORING_ROOT, POUND_TPL_FILE)
-    dst = POUND_CFG_FILE
     try:
-        shutil.copyfile(src, dst)
-        for line in fileinput.input(dst, inplace=1):
+        shutil.copyfile(POUND_TPL_FILE, POUND_CFG_FILE)
+        for line in fileinput.input(POUND_CFG_FILEt, inplace=1):
             if line.find("OWN_IP") >= 0:
                 print line.replace("OWN_IP", own_ip),
             elif line.find("OWN_PORT") >= 0:
@@ -73,4 +70,5 @@ def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
                 print line,
     except:
         nodechecker.util.log_exception(sys.exc_info())
-    sysutil.system_v_service_command('pound', 'restart')
+    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/pound/bin/restart.sh")])
+

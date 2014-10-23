@@ -15,16 +15,16 @@
 RETVAL=0
 ARGS=""
 prog="collectd"
-CONFIG=$OI_COLLECTD_ROOT/etc/collectd.conf
-PIDFILE=$OI_COLLECTD_ROOT/var/run/collectd.pid
-export LD_LIBRARY_PATH=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/lib/amd64/server/
+CONFIG=$OI_ROOT/healthmonitoring/collectd/etc/collectd.conf
+COLLECTD_HOME=$OI_ROOT/healthmonitoring/collectd/sbin
+PIDFILE=$OI_ROOT/healthmonitoring/collectd/var/run/collectd.pid
 
 start () {
         echo -n $"Starting $prog: "
         if [ -r "$CONFIG" ]
         then
-                daemon --pidfile $PIDFILE $OI_COLLECTD_ROOT/sbin/$prog -C "$CONFIG"
-                RETVAL=$?
+                daemon --user collectd --pidfile $PIDFILE $COLLECTD_HOME/$prog -C "$CONFIG"
+		RETVAL=$?
                 echo
                 [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
         fi
@@ -58,8 +58,6 @@ case "$1" in
         echo $"Usage: $0 {start|stop|status|restart|reload|condrestart}"
         exit 1
 esac
-
-unset JAVA_HOME
 
 exit $?
 

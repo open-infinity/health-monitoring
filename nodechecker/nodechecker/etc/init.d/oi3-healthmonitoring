@@ -8,41 +8,38 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-# Source networking configuration.
-#. /etc/sysconfig/network
-
 # Open Infinity variables
 . /etc/profile.d/oi.sh
 
-# Check that networking is up.
-
-#[ ${NETWORKING} = "no" ] && exit 0
-
-HOSTNAME=$(hostname);export HOSTNAME
+HOSTNAME=$(hostname)
+LOCKFILE=/var/lock/subsys/oi3-healthmonitoring
+HM_HOME=$OI_ROOT/healthmonitoring/nodechecker/bin
 
 # See how we were called.
   case "$1" in
     start)
           # Start daemon.
-          $OI_HEALTH_MONITORING_ROOT/bin/start&
+          echo "starting hm"
+          $HM_HOME/start
           RETVAL=$?
-          [ $RETVAL -eq 0 ] && touch /var/lock/subsys/oi3-healthmonitoring
+	  echo "touching"
+	  [ $RETVAL -eq 0 ] && touch $LOCKFILE
           ;;
     stop)
           # Stop daemons.
-          $OI_HEALTH_MONITORING_ROOT/bin/stop&
+          $HM_HOME/stop
           echo "Waiting for shutdown.."
           sleep 2
 
           RETVAL=$?
-          [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/oi3-healthmonitoring
+          [ $RETVAL -eq 0 ] && rm -f $LOCKFILE
           ;;
     restart)
           $0 stop
           $0 start
           ;;
     condrestart)
-         [ -e /var/lock/subsys/oi3-healthmonitoring ] && $0 restart
+         [ -e $LOCKFILE ] && $0 restart
          ;;
     status)
           status oi3-healthmonitoring

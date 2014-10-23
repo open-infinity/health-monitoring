@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# pound         This shell script starts the Pound load-balancer
+#
+# Author:       Ruben Kerkhof <ruben@rubenkerkhof.com>
+#
+# chkconfig: - 85 15
+#
+# description:  Pound is a reverse proxy and load-balancer
+# processname:  pound
+# config: /etc/pound.cfg
+# pidfile: /var/run/pound.pid
+#
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+# Open Infinity variables
+. /etc/profile.d/oi.sh
+
+RETVAL=0
+
+start() {
+	echo -n $"Starting Pound: "
+	daemon pound -f $OI_ROOT/healthmonitoring/pound/etc/pound.cfg
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/pound
+}
+
+stop() {
+	echo -n $"Stopping Pound: "
+	killproc pound
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/pound
+}
+
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop) 
+	stop
+	;;
+  restart|force-reload|reload)
+	restart
+	;;
+  condrestart)
+	[ -f /var/lock/subsys/pound ] && restart
+	;;
+  status)
+	status pound
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
+	exit 1
+esac
+
+exit $RETVAL

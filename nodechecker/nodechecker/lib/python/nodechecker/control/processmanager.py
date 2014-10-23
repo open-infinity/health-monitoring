@@ -3,10 +3,11 @@
 # FIXME
 from nodechecker.nodechecker import *
 import daemon
-import sysutil
+import os
+import subprocess
 
-NODECHECKER_PID_FILE = '/var/run/oi3-healthmonitoring.pid'
-
+OI_ROOT= os.environ["OI_ROOT"]
+NODECHECKER_PID_FILE = os.path.join(OI_ROOT, 'healthmonitoring/nodechecker/var/run/oi3-healthmonitoring.pid')
 
 class NodecheckerDaemon(daemon.Daemon):
     def run(self):
@@ -24,10 +25,10 @@ def start_health_monitoring():
 
 
 def stop_health_monitoring():
-    stop_nodechecker()
-    sysutil.system_v_service_command('oi3-rrd-http-server', 'stop')
-    sysutil.system_v_service_command('oi3-collectd', 'stop')
-    sysutil.system_v_service_command('pound', 'stop')
+    stop_nodechecker() 
+    subprocess.Popen(['sudo', os.path.join(OI_ROOT, "healthmonitoring/collectd/sbin/stop.sh")])
+    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/pound/bin/stop.sh")])
+    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/rrd-http-server/bin/stop.sh")])
 
 
 def start_nodechecker():

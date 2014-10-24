@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USER=oiuser
+USER=rrd-http-server
 PID_FILE=/var/run/rrd-http-server.pid
 CP=$OI_RRD_HTTP_SERVER_ROOT/lib/java/rrd-http-server.jar
 PROPERTIES='log_dir='$OI_RRD_HTTP_SERVER_ROOT/var/log/

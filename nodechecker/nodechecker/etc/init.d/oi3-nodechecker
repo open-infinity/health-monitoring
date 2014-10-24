@@ -1,8 +1,8 @@
 #!/bin/bash
 # chkconfig: - 85 15
 # description: Open Infinity Health Monitoring init script
-# processname: oi3-healthmonitoring
-# pidfile: /var/run/oi3-healthmonitoring.pid
+# processname: oi3-nodechecker
+# pidfile: /var/run/oi3-nodechecker.pid
 # config:
 
 # Source function library.
@@ -12,17 +12,15 @@
 . /etc/profile.d/oi.sh
 
 HOSTNAME=$(hostname)
-LOCKFILE=/var/lock/subsys/oi3-healthmonitoring
+LOCKFILE=/var/lock/subsys/oi3-nodechecker
 HM_HOME=$OI_ROOT/healthmonitoring/nodechecker/bin
 
 # See how we were called.
   case "$1" in
     start)
           # Start daemon.
-          echo "starting hm"
           $HM_HOME/start
           RETVAL=$?
-	  echo "touching"
 	  [ $RETVAL -eq 0 ] && touch $LOCKFILE
           ;;
     stop)
@@ -42,7 +40,7 @@ HM_HOME=$OI_ROOT/healthmonitoring/nodechecker/bin
          [ -e $LOCKFILE ] && $0 restart
          ;;
     status)
-          status oi3-healthmonitoring
+          status oi3-nodechecker
           ;;
     *)
           echo "Usage: $0 {start|stop|restart|status}"

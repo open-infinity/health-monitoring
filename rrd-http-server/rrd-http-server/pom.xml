@@ -3,7 +3,7 @@
 
     <groupId>org.openinfinity.health-monitoring</groupId>
 
-    <version>3.0.0</version>
+    <version>3.1.0</version>
 
     <artifactId>rrd-http-server</artifactId>
 

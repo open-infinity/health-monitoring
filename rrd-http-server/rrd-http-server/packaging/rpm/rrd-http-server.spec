@@ -1,6 +1,6 @@
 Name:           oi3-rrd-http-server
 Version:        3.1.0
-Release:        2%{?dist}
+Release:        10%{?dist}
 Summary:        HTTP Server for rrd data gathered by Health Monitoring for Open Infinity
 BuildArch:      x86_64
 License:        Apache 
@@ -10,20 +10,23 @@ BuildRoot:      %{_tmppath}/%{name}-%{release}-root-%(%{__id_u} -n)
 Requires:       java-1.7.0-openjdk, jakarta-commons-daemon-jsvc >= 1.0.1, oi3-nodechecker
 
 %global installation_dir opt/openinfinity/3.1.0/healthmonitoring
-
+%global rrd_home rrd-http-server/packaging/rrd-http-server
 %description
 The http server for rrd data gathered by Health Monitoring for Open Infinity
 
 %prep
 %setup -q
 
+%build
+mvn clean install
+
 %install
 mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/lib/java
-cp -rf ./lib/java/* $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/lib/java
+cp -rf ./%{rrd_home}/lib/java/* $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/lib/java
 mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/bin
-cp -rf ./opt/rrd-http-server/bin/* $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/bin
+cp -rf ./%{rrd_home}/opt/rrd-http-server/bin/* $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/bin
 mkdir -p $RPM_BUILD_ROOT/etc/init.d/
-cp -rf ./etc/init.d/oi3-rrd-http-server $RPM_BUILD_ROOT/etc/init.d/
+cp -rf ./%{rrd_home}/etc/init.d/oi3-rrd-http-server $RPM_BUILD_ROOT/etc/init.d/
 mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/var/log
 
 %files
@@ -32,11 +35,16 @@ mkdir -p $RPM_BUILD_ROOT/%{installation_dir}/rrd-http-server/var/log
 /etc/init.d/oi3-rrd-http-server
 
 %post
-useradd oiuser
-chown oiuser /%{installation_dir}/rrd-http-server/var/log
+useradd rrd-http-server
+chown -R rrd-http-server /%{installation_dir}/rrd-http-server
 chmod u+x /etc/init.d/oi3-rrd-http-server
 chmod 755 /%{installation_dir}/rrd-http-server/bin/start-rrd-http-server.sh
 chmod 755 /%{installation_dir}/rrd-http-server/bin/stop-rrd-http-server.sh
+chmod 755 /%{installation_dir}/rrd-http-server/bin/start.sh
+chmod 755 /%{installation_dir}/rrd-http-server/bin/stop.sh
+chmod 755 /%{installation_dir}/rrd-http-server/bin/restart.sh
+chown -R root /%{installation_dir}/rrd-http-server/bin
+
 /sbin/chkconfig --add oi3-rrd-http-server
 /sbin/chkconfig oi3-rrd-http-server on
 

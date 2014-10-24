@@ -1,0 +1,9 @@
+Defaults:nodechecker    !requiretty
+
+## OpenInfinity HM Aliases
+Cmnd_Alias OI3_COLLECTD = /opt/openinfinity/3.1.0/healthmonitoring/collectd/sbin/start.sh, /opt/openinfinity/3.1.0/healthmonitoring/collectd/sbin/stop.sh, /opt/openinfinity/3.1.0/healthmonitoring/collectd/sbin/restart.sh
+Cmnd_Alias OI3_RRD_HTTP_SERVER = /opt/openinfinity/3.1.0/healthmonitoring/rrd-http-server/bin/start.sh, /opt/openinfinity/3.1.0/healthmonitoring/rrd-http-server/bin/stop.sh, /opt/openinfinity/3.1.0/healthmonitoring/rrd-http-server/bin/restart.sh
+Cmnd_Alias OI3_POUND = /opt/openinfinity/3.1.0/healthmonitoring/pound/bin/start.sh, /opt/openinfinity/3.1.0/healthmonitoring/pound/bin/stop.sh, /opt/openinfinity/3.1.0/healthmonitoring/pound/bin/restart.sh
+
+nodechecker ALL = (root) NOPASSWD: OI3_COLLECTD, OI3_RRD_HTTP_SERVER, OI3_POUND
+

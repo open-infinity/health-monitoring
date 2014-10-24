@@ -1,8 +1,8 @@
 
 Name:           oi3-collectd
-Version:        5.4.0
-Release:        12%{?dist}
-Summary:        Collectd built and configured for Open Infinity
+Version:        3.1.0
+Release:        10%{?dist}
+Summary:        Collectd configured for Open Infinity
 BuildArch:      x86_64
 Group:          Applications
 License:        GNU GPLv2
@@ -24,14 +24,14 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %global installation_path /opt/openinfinity/3.1.0/healthmonitoring
 
 %description
-Collectd built and configured for Open Infinity
+Collectd configured for Open Infinity
 
 %prep
 %setup -q
 
 %build
 ./build.sh
-./configure --prefix %{installation_path}/collectd --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.55.x86_64/ --enable-rrdtool --enable-debug --enable-java
+./configure --prefix %{installation_path}/collectd --enable-rrdtool --enable-debug --enable-java JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.55.x86_64/
 make
 
 %install
@@ -45,12 +45,16 @@ make install DESTDIR=%{buildroot}
 %exclude %{installation_path}/collectd/etc/collectd.conf
  
 %post
+useradd collectd > /dev/null 2>&1
+
 /sbin/chkconfig --add oi3-collectd
 /sbin/chkconfig oi3-collectd on
 
 mkdir -p %{installation_path}/collectd/
 mkdir -p %{installation_path}/collectd/var/log/
 mkdir -p %{installation_path}/collectd/var/lib/collectd/rrd
+
+chown -R collectd /%{installation_path}/collectd
 
 %preun
 if [ "$1" = 0 ]; then
@@ -62,11 +66,20 @@ fi
 %postun
 if [ "$1" -ge "1" ] ; then
     /sbin/service oi3-collectd condrestart >/dev/null 2>&1 || :
+    rm -rf %{installation_path}/collectd
 fi
 
 exit 0
 
 %changelog
+* Thu Oct 16 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 3.1.0-1
+- Daemon runs process with collectd user
+- User creation and dir ownership added
+
+* Thu Oct 16 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 3.1.0-1
+- Versioning changed to Open infinity insead of Collectd version numbers
+- Changed --with java arg to us use relative path
+
 * Thu Jun 12 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 5.4.0-9
 - Using collectd 5.4.0, commit 4c6303ec6be673df6c9e0964dfc9419c697bf47c.
 A version update to 3.1.0 for open infinity. Installation path updated too.

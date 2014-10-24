@@ -10,8 +10,6 @@ import subprocess
 
 OI_ROOT = os.environ["OI_ROOT"]
 RRD_DIR = os.path.join(OI_ROOT, "healthmonitoring/collectd/var/lib/collectd/rrd")
-POUND_TPL_FILE = os.path.join(OI_ROOT, "nodechecker/var/share/pound/pound.cfg.tpl")
-POUND_CFG_FILE = os.path.join(OI_ROOT, "healthmonitoring/pound/etc/pound.cfg")
 
 logger = logging.getLogger('nodechecker.nodemanager')
 
@@ -36,9 +34,10 @@ def configure_and_restart_collectd(ip, mode):
     tpl_file = "var/share/collectd/%s.tpl" % (mode)
     src = os.path.join(OI_ROOT, "healthmonitoring/nodechecker", tpl_file)
     dst = os.path.join(OI_ROOT, "healthmonitoring/collectd/etc/collectd.d/network.conf")
+    temp = src + ".temp"
     try:
-        shutil.copyfile(src, dst)
-        for line in fileinput.input(dst, inplace=1):
+        shutil.copyfile(src, temp)
+        for line in fileinput.input(temp, inplace=1):
             if mode == "client":
                 print line.replace("SERVER_IP", ip),
             else:
@@ -48,6 +47,7 @@ def configure_and_restart_collectd(ip, mode):
                     print line.replace("RRD_DATA_DIR", RRD_DIR),
                 else:
                     print line,
+        shutil.copyfile(temp, dst)
     except:
         nodechecker.util.log_exception(sys.exc_info())
     subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/collectd/sbin/restart.sh")])
@@ -56,8 +56,11 @@ def configure_and_restart_collectd(ip, mode):
 def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
     global logger
     try:
-        shutil.copyfile(POUND_TPL_FILE, POUND_CFG_FILE)
-        for line in fileinput.input(POUND_CFG_FILEt, inplace=1):
+        tpl_file = os.path.join(OI_ROOT, "healthmonitoring/nodechecker/var/share/pound/pound.cfg.tpl")
+        temp_file = tpl_file + ".temp"
+        conf_file = "etc/pound.cfg"
+        shutil.copyfile(tpl_file, temp_file)
+        for line in fileinput.input(temp_file, inplace=1):
             if line.find("OWN_IP") >= 0:
                 print line.replace("OWN_IP", own_ip),
             elif line.find("OWN_PORT") >= 0:
@@ -68,6 +71,7 @@ def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
                 print line.replace("SERVER_PORT", repr(server_port)),
             else:
                 print line,
+        shutil.copyfile(temp_file, conf_file)
     except:
         nodechecker.util.log_exception(sys.exc_info())
     subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/pound/bin/restart.sh")])

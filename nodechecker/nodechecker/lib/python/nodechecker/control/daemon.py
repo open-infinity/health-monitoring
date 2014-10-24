@@ -5,6 +5,7 @@ import os
 import time
 import atexit
 from signal import SIGKILL
+from pwd import getpwnam
 
 # TODO kill with SIGTERM
 
@@ -15,12 +16,13 @@ class Daemon:
 
     Usage: subclass the Daemon class and override the run() method
     """
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null',
+    def __init__(self, pidfile, username='nodechecker', stdin='/dev/null', stdout='/dev/null',
                  stderr='/dev/null'):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
         self.pidfile = pidfile
+	self.username = username
 
     def daemonize(self):
         """
@@ -29,6 +31,7 @@ class Daemon:
         http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
         """
         try:
+            os.setuid(getpwnam(self.username).pw_uid)
             pid = os.fork()
             if pid > 0:
                 # exit first parent

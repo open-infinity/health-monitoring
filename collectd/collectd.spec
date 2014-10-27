@@ -31,7 +31,7 @@ Collectd configured for Open Infinity
 
 %build
 ./build.sh
-./configure --prefix %{installation_path}/collectd --enable-rrdtool --enable-debug --enable-java JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.55.x86_64/
+./configure --prefix %{installation_path}/collectd --enable-rrdtool --enable-debug --enable-java LDFLAGS='-Wl,-rpath,/usr/lib/jvm/jre-1.7.0/lib/amd64/server' JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.55.x86_64/
 make
 
 %install
@@ -72,9 +72,10 @@ fi
 exit 0
 
 %changelog
-* Thu Oct 16 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 3.1.0-1
+* Mon Oct 27 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 3.1.0-10
 - Daemon runs process with collectd user
 - User creation and dir ownership added
+- LDFLAGS for java.so for better portabilty 
 
 * Thu Oct 16 2014 Vedran Bartonicek <vedran.bartonicek@tieto.com> - 3.1.0-1
 - Versioning changed to Open infinity insead of Collectd version numbers

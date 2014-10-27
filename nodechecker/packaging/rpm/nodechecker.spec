@@ -65,7 +65,7 @@ cp -rf ./usr/local/bin/notify %{buildroot}/usr/local/bin/
 
 %post
 #TODO: move collectd config stuff to colelctd package
-seradd nodechecker > /dev/null 2>&1
+useradd nodechecker > /dev/null 2>&1
 usermod -a -G collectd nodechecker  > /dev/null 2>&1
 mkdir -p /%{installation_path}/nodechecker/var/run
 
@@ -105,6 +105,9 @@ rm -rf/%{installation_path}/collectd/etc
 rm -rf/%{installation_path}/collectd/share
 
 %changelog
+* Mon Oct 27 2014 Version update <vbartoni@gmail.com> - 3.1.0-10
+- User set to nodechecker
+
 * Fri Jun 13 2014 Version update <vbartoni@gmail.com> - 3.1.0-1
 - Set version to 3.1.0. Updated installation path
 

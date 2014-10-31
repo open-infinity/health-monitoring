@@ -50,7 +50,7 @@ def configure_and_restart_collectd(ip, mode):
         shutil.copyfile(temp, dst)
     except:
         nodechecker.util.log_exception(sys.exc_info())
-    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/collectd/sbin/restart.sh")])
+    subprocess.Popen(['sudo', os.path.join(OI_ROOT, "healthmonitoring/collectd/sbin/restart.sh")])
 
 
 def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
@@ -74,5 +74,5 @@ def configure_and_restart_pound(own_ip, own_port, server_ip, server_port):
         shutil.copyfile(temp_file, conf_file)
     except:
         nodechecker.util.log_exception(sys.exc_info())
-    subprocess.Popen([ 'sudo', os.path.join(OI_ROOT, "healthmonitoring/pound/bin/restart.sh")])
+    subprocess.Popen(['sudo', os.path.join(OI_ROOT, "healthmonitoring/pound/bin/restart.sh")])
 

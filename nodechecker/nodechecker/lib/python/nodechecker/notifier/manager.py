@@ -1,10 +1,12 @@
 #!/usr/bin/env python2
 
 import os
+import subprocess
 import sys
 
-import mailsender
-import notificationlogger
+import email
+import logger
+import snmp
 import notification
 import nodechecker.util
 
@@ -15,7 +17,8 @@ class NotificationManager(object):
         self.conf = conf
         self.node = node
         self.mail_sender = self.create_mail_sender()
-        self.notification_logger = notificationlogger.\
+        self.snmp_trap_sender = self.create_snmp_trap_sender()
+        self.notification_logger = logger.\
                 NotificationLogger(self.conf, self.node)
 
     def process_notifications(self, notification_list):
@@ -23,22 +26,13 @@ class NotificationManager(object):
             self.notification_logger.log(notification_list)
             if self.mail_sender is not None:
                 self.mail_sender.send(notification_list)
+            if self.snmp_trap_sender is not None:
+                self.snmp_trap_sender.send(notification_list)
             self.move_processed_notifications(notification_list)
 
     def process_node_status_alerts(self, node_list, category):
         self.process_notifications(self.create_notifications(
                 node_list, category))
-
-        # if self.notification_logger:
-        #     self.notification_logger.process_node_status_alerts(node_list, category)
-        # if self.mail_sender:
-        #     self.mail_sender.process_node_status_alerts(node_list, category)
-        # self.move_sent_items(notification_list)
-
-    def create_mail_sender(self):
-        if self.conf.email_use == 'yes':
-            return mailsender.MailSender(self.conf, self.node)
-        return None
 
     def move_processed_notifications(self, notification_list):
         try:
@@ -53,6 +47,16 @@ class NotificationManager(object):
                     pass
         except:
             nodechecker.util.log_exception(sys.exc_info())
+
+    def create_mail_sender(self):
+        if self.conf.email_enabled == 'yes':
+            return email.MailSender(self.conf, self.node)
+        return None
+
+    def create_snmp_trap_sender(self):
+        if self.conf.snmp.enabled == 'yes':
+            return snmp.TrapSender(self.conf, self.node)
+        return None
 
     def create_notifications(self, node_list, category):
         notification_list = []

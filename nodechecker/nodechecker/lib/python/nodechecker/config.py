@@ -31,11 +31,15 @@ class Config(object):
         self.notifications_sent_dir = config.get('notifications', 'sent_dir')
         self.notifications_dead_node_string = config.get('notifications', 'dead_node_string')
 
-        self.email_use = config.get('email', 'use')
+        self.email_enabled = config.get('email', 'enabled')
         self.email_subject = config.get('email', 'subject')
         self.email_from = config.get('email', 'from')
         self.email_to = config.get('email', 'to')
         self.email_smpt_server = config.get('email', 'smpt_server')
+
+        self.snmp_enabled = config.get('snmp', 'enabled')
+        self.snmp_community_string = config.get('snmp', 'community_string')
+        self.snmp_manager = config.get('snmp', 'manager')
 
         self.collectd_rrd_dir = config.get('collectd', 'rrd_dir')
 

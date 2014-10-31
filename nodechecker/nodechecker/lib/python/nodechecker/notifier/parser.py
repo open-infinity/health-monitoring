@@ -10,7 +10,7 @@ import nodechecker.util
 OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
 
 
-class NotificationReader(object):
+class NotificationParser(object):
 
     def __init__(self, node, config):
         self.logger = logging.getLogger('nodechecker.notificationreader')

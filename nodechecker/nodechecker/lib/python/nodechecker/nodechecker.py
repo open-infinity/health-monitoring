@@ -16,8 +16,8 @@ import socket
 import threading
 import time
 import config
-import notifier.notificationreader
-import notifier.notificationmanager
+import notifier.parser
+import notifier.manager
 import functools
 import reader
 import util
@@ -660,9 +660,9 @@ def init(settings):
 
     # Construct remaining members
     lock_resources = threading.RLock()
-    ntf_reader = notifier.notificationreader.NotificationReader(my_node, conf)
+    ntf_reader = notifier.parser.NotificationParser(my_node, conf)
     #mail_sender = notifier.mailsender.MailSender(conf, my_node)
-    ntf_manager = notifier.notificationmanager.NotificationManager(my_node, conf)
+    ntf_manager = notifier.manager.NotificationManager(my_node, conf)
     heartbeat_listener = listener.HeartbeatListener(my_node,
                                                     heartbeats_received,
                                                     master_list,

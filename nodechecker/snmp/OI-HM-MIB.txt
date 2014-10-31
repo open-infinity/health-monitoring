@@ -1,0 +1,162 @@
+-- *****************************************************************
+--  Description , copyrights...
+-- ****************************************************************
+
+OI-HM-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+     MODULE-IDENTITY,
+     enterprises
+     NOTIFICATION-TYPE,
+     OBJECT-IDENTITY,
+     Integer32,
+     Unsigned32,
+     OBJECT-TYPE        FROM SNMPv2-SMI
+     MODULE-COMPLIANCE,
+     NOTIFICATION-GROUP,
+     OBJECT-GROUP       FROM SNMPv2-CONF
+     TimeStamp          FROM SNMPv2-TC
+     SnmpAdminString    FROM SNMP-FRAMEWORK-MIB
+     InetAddress        FROM INET-ADDRESS-MIB
+     ;
+
+oi  MODULE-IDENTITY
+    LAST-UPDATED    "201410290000Z"
+    ORGANIZATION    "OpenInfinity"
+    CONTACT-INFO    "vbartoni@gmail.com"
+
+    DESCRIPTION "The Structure of Management Information for the
+                OpenInfinity Health Monitoring notifications."
+    REVISION        "201410290000Z"
+    DESCRIPTION
+        "Initial version"
+    ::= { enterprises 99999 }
+
+types OBJECT IDENTIFIER ::= { oi 1 }
+
+healthMonitoring OBJECT-IDENTITY
+    STATUS          current
+    DESCRIPTION
+        "healthMonitoring is the root OBJECT IDENTIFIER from
+        which monitoring related objects are subtreed."
+    ::= { oi 2 }
+
+nodeHostname             OBJECT-TYPE
+         SYNTAX          SnmpAdminString (SIZE(1..255))
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "OpenInfinity HealthMonitoring MasterNode hostname."
+         ::= { types 1 }
+
+nodeInstanceId           OBJECT-TYPE
+         SYNTAX          Unsigned32
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Instance ID of the instance to which the cluster belongs to" 
+	::= { types 2 }
+
+nodeCloudZone        	 OBJECT-TYPE
+         SYNTAX          SnmpAdminString (SIZE(1..255))
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "OpenInfinity cloud zone"
+         ::= { types 3 }
+
+nodeIpAddressPublic      OBJECT-TYPE
+         SYNTAX          InetAddress
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "OpenInfinity HealthMonitoring MasterNode public IP address"
+	 ::= { types 4 }
+
+nodeClusterId	         OBJECT-TYPE
+         SYNTAX          Unsigned32
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Cluster ID of the cluster to which the master node belongs to"
+         ::= { types 5 }
+
+nodeMachineId	         OBJECT-TYPE
+         SYNTAX          Unsigned32
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Master node's machine ID"
+         ::= { types 6 }
+
+
+ntfCategory	         OBJECT-TYPE
+         SYNTAX          SnmpAdminString (SIZE(1..255))
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Notification category"
+         ::= { types 7 }
+
+ntfSeverity        OBJECT-TYPE
+         SYNTAX          SnmpAdminString (SIZE(1..255))
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Severity"
+	 ::= { types 8 }
+
+ntfHostname	         OBJECT-TYPE
+         SYNTAX          SnmpAdminString (SIZE(1..255))
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Hostname of the node on which the notification is related to"
+         ::= { types 9 }
+
+ntfMessage	  	 OBJECT-TYPE
+         SYNTAX          SnmpAdminString (SIZE(1..255))
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Notification message"
+         ::= { types 10 }
+
+ntfIpAddressPublic       OBJECT-TYPE
+         SYNTAX          InetAddress
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION
+         "Public IP address of the node to which the notification is related to."
+	 ::= { types 11 }
+
+ntfTime		  	 OBJECT-TYPE
+         SYNTAX          SnmpAdminString (SIZE(1..255))
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Timestamp"
+         ::= { types 12 }
+
+ntfMachineId             OBJECT-TYPE
+         SYNTAX          Unsigned32
+         MAX-ACCESS      read-only
+         STATUS          current
+         DESCRIPTION     "Machine ID of the node to which the notification is related to"
+         ::= { types 13 }
+
+notification NOTIFICATION-TYPE
+    OBJECTS { 
+-- attributes that relate to machine sending the notification
+        nodeHostname
+        nodeInstanceId
+        nodeCloudZone
+        nodeIpAddressPublic
+        nodeClusterId
+        nodeMachineId
+
+-- attributes that relate to the machine on which notification was 
+-- created
+        ntfCategory
+        ntfSeverity
+        ntfHostname
+        ntfMessage
+        ntfIpAddressPublic
+        ntfTime
+        ntfMachineId
+ }
+    STATUS current
+    DESCRIPTION "Notification used by OpenInfinity Health Monitoring"
+    ::= { healthMonitoring 1 }
+
+END
+

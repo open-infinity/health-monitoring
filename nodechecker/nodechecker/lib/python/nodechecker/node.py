@@ -7,13 +7,13 @@ import hashlib
 class Node(object):
     """This class represents health monitoring node."""
     def __init__(self,
-                 port=0,
+                 port=None,
                  ip_address=None,
                  ip_address_public=None,
-                 instance_id=0,
-                 cluster_id=0,
-                 machine_id=0,
-                 cloud_zone=0,
+                 instance_id=None,
+                 cluster_id=None,
+                 machine_id=None,
+                 cloud_zone=None,
                  role="SLAVE",
                  hostname=None,
                  machine_type="NOT_DEFINED"):

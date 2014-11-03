@@ -22,13 +22,16 @@ class NotificationManager(object):
                 NotificationLogger(self.conf, self.node)
 
     def process_notifications(self, notification_list):
-        if notification_list:
-            self.notification_logger.log(notification_list)
-            if self.mail_sender is not None:
-                self.mail_sender.send(notification_list)
-            if self.snmp_trap_sender is not None:
-                self.snmp_trap_sender.send(notification_list)
-            self.move_processed_notifications(notification_list)
+        try:
+            if notification_list:
+                self.notification_logger.log(notification_list)
+                if self.mail_sender is not None:
+                    self.mail_sender.send(notification_list)
+                if self.snmp_trap_sender is not None:
+                    self.snmp_trap_sender.send(notification_list)
+                self.move_processed_notifications(notification_list)
+        except:
+            nodechecker.util.log_exception(sys.exc_info())
 
     def process_node_status_alerts(self, node_list, category):
         self.process_notifications(self.create_notifications(

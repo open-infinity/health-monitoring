@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 
-import email
+import mailer
 import logger
 import snmp
 import notification
@@ -53,7 +53,7 @@ class NotificationManager(object):
 
     def create_mail_sender(self):
         if self.conf.email_enabled == 'yes':
-            return email.MailSender(self.conf, self.node)
+            return mailer.MailSender(self.conf, self.node)
         return None
 
     def create_snmp_trap_sender(self):

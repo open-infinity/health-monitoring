@@ -9,6 +9,8 @@ class Config(object):
         config = ConfigParser.SafeConfigParser()
         config.read(conf_file)
 
+        self.oi_root = config.get('oi', 'root')
+
         self.node_mode = config.get('node', 'mode')
         self.node_log_level = config.get('node', 'log_level')
         self.node_log_file = config.get('node', 'log_file')

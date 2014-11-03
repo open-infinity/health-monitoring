@@ -1,4 +1,6 @@
-import nodechecker
+
+import os
+import inspect
 import nodechecker.notification.notification
 import nodechecker.notification.snmp
 import nodechecker.config
@@ -13,7 +15,8 @@ def setup():
     global node, conf, sender
     node = nodechecker.node.Node(hostname='test1', port=10, cloud_zone='cloudzone1', ip_address_public='1.2.3.4',
                                      instance_id=1, cluster_id=1, machine_id=1)
-    conf = nodechecker.config.Config("test/nodechecker.conf")
+    test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
     sender = nodechecker.notification.snmp.TrapSender(conf, node)
 
 

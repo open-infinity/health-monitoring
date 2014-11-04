@@ -10,7 +10,7 @@ import snmp
 import notification
 import nodechecker.util
 
-ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
+#ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
 
 class NotificationManager(object):
     def __init__(self, node, conf):
@@ -42,7 +42,7 @@ class NotificationManager(object):
             for n in notification_list:
                 if n.file_path:
                     os.rename(n.file_path, os.path.join(
-                        os.environ[ENV_HM_HOME_DIR],
+                        self.conf.hm_root,
                         self.conf.notifications_home_dir,
                         self.conf.notifications_sent_dir,
                         n.file_name))
@@ -57,7 +57,7 @@ class NotificationManager(object):
         return None
 
     def create_snmp_trap_sender(self):
-        if self.conf.snmp.enabled == 'yes':
+        if self.conf.snmp_enabled == 'yes':
             return snmp.TrapSender(self.conf, self.node)
         return None
 

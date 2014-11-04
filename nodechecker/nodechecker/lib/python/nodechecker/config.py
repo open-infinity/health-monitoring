@@ -12,13 +12,7 @@ class Config(object):
         config.read(conf_file)
 
         hm_root = config.get('hm', 'root')
-        # move to test
-        if hm_root == 'TEST':
-            test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-            os.path.join(test_dir, 'nodechecker.conf')
-        else:
-            self.hm_root = hm_root
-
+        
         self.node_mode = config.get('node', 'mode')
         self.node_log_level = config.get('node', 'log_level')
         self.node_log_file = config.get('node', 'log_file')

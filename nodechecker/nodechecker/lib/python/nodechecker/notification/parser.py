@@ -7,18 +7,20 @@ import logging
 import notification
 import nodechecker.util
 
-OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
+#OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
 
 
 class NotificationParser(object):
 
     def __init__(self, node, config):
         self.logger = logging.getLogger('nodechecker.notificationreader')
+        self.config = config
         self.node = node
         self.dead_node_string = config.notifications_dead_node_string
         self.eol = "\n"
         self.text_separator = ":"
-        self.inbox = os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT],
+        self.inbox = os.path.join(config.hm_root,
+                                  config.nodechecker_home,
                                   config.notifications_home_dir,
                                   config.notifications_inbox_dir)
 

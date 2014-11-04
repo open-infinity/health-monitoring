@@ -9,8 +9,6 @@ import nodechecker.util
 import nodechecker.node
 
 
-OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
-
 class JsonWrapper(object):
     def __init__(self, node, notifications=None):
         self.node = node
@@ -30,7 +28,7 @@ class JsonEncoder(json.JSONEncoder):
 class NotificationLogger(object):
     def __init__(self, config, node):
         self.node = node
-        self.config = config
+        self.conf = config
         self.logger = logging.getLogger('nodechecker.notificationlogger')
         self.ntf_logger = self.configure_logger()
 
@@ -46,9 +44,9 @@ class NotificationLogger(object):
     def configure_logger(self):
         logger = logging.getLogger('notifications')
         handler = logging.handlers.RotatingFileHandler(
-            os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT], self.config.notifications_log_file),
-            maxBytes=self.config.notifications_log_file_max_bytes,
-            backupCount=self.config.notifications_log_file_backup_count)
+            os.path.join(self.conf.hm_root, self.conf.nodechecker_home, self.conf.notifications_log_file),
+            maxBytes=self.conf.notifications_log_file_max_bytes,
+            backupCount=self.conf.notifications_log_file_backup_count)
         formatter = logging.Formatter("%(asctime)s %(message)s")
         handler.setFormatter(formatter)
         logger.setLevel(logging.DEBUG)

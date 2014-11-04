@@ -445,9 +445,11 @@ def configure_logger():
     global logger
     global loglevel
     global logfile
+    global conf
     logger = logging.getLogger('nodechecker')
+    log_file_path = os.path.join(conf.hm_root, conf.nodechecker_home, logfile)
     handler = logging.handlers.RotatingFileHandler(
-        logfile, maxBytes=MAX_BYTES_LOGFILE, backupCount=5)
+        log_file_path, maxBytes=MAX_BYTES_LOGFILE, backupCount=5)
     if loglevel == "debug":
         logger.setLevel(logging.DEBUG)
     else:
@@ -506,7 +508,7 @@ def process_settings(options, conf, node):
         loglevel = conf.node_log_level
 
     if options and options.logfile:
-        logfile = options.logfile
+        logfile = oggeroptions.logfile
     else:
         logfile = conf.node_log_file
 
@@ -524,36 +526,38 @@ def process_settings(options, conf, node):
 
     if options and options.ip_address_public:
         node.ip_address_public = options.ip_address_public
-    elif conf.node_ip_address_public == "auto":
-        node.ip_address_public = os.environ["OI_PUBLIC_IP"]
+        
+    # can't know which ip address to use automatically. this must be configured in config file    
+    #elif conf.node_ip_address_public == "auto":
+    #    node.ip_address_public = os.environ["OI_PUBLIC_IP"]
     else:
         node.ip_address_public = conf.node_ip_address_public
 
     if options and options.instance_id:
         node.instance_id = options.instance_id
-    elif conf.node_instance_id == "auto":
-        node.instance_id = os.environ["OI_INSTANCE_ID"]
+    #elif conf.node_instance_id == "auto":
+    #    node.instance_id = os.environ["OI_INSTANCE_ID"]
     else:
-        node.instance_id = conf.instance_id
+        node.instance_id = conf.node_instance_id
 
     if options and options.cluster_id:
         node.cluster_id = options.cluster_id
-    elif conf.node_cluster_id == "auto":
-        node.cluster_id = os.environ["OI_CLUSTER_ID"]
+    #elif conf.node_cluster_id == "auto":
+    #    node.cluster_id = os.environ["OI_CLUSTER_ID"]
     else:
         node.cluster_id = conf.node_cluster_id
 
     if options and options.machine_id:
         node.machine_id = options.machine_id
-    elif conf.node_machine_id == "auto":
-        node.machine_id = os.environ["OI_MACHINE_ID"]
+    #elif conf.node_machine_id == "auto":
+    #    node.machine_id = os.environ["OI_MACHINE_ID"]
     else:
         node.machine_id = conf.node_machine_id
 
     if options and options.cloud_zone:
         node.cloud_zone = options.cloud_zone
-    elif conf.node_cloud_zone == "auto":
-        node.cloud_zone = os.environ["OI_CLOUD_ZONE"]
+    #elif conf.node_cloud_zone == "auto":
+    #    node.cloud_zone = os.environ["OI_CLOUD_ZONE"]
     else:
         node.cloud_zone = conf.node_cloud_zone
 
@@ -637,8 +641,8 @@ def init(settings=None, conf_obj=None, config_file=None):
 
     conf = conf_obj if conf_obj else config.Config(config_file)
 
-    node_list_file = os.path.join(conf.hm_root, "etc", "nodelist.conf")
-    active_node_list_file = os.path.join(conf.hm_root, "etc", "active_nodelist.conf")
+    node_list_file = os.path.join(conf.hm_root, 'nodechecker', "etc", "nodelist.conf")
+    active_node_list_file = os.path.join(conf.hm_root, 'nodechecker', "etc", "active_nodelist.conf")
 
     # Construct node
     my_node = node.Node()

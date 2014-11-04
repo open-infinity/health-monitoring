@@ -7,7 +7,7 @@ import hashlib
 class Node(object):
     """This class represents health monitoring node."""
     def __init__(self,
-                 port=None,
+                 port=0,
                  ip_address=None,
                  ip_address_public=None,
                  instance_id=None,

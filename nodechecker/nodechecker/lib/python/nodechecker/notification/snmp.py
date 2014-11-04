@@ -28,6 +28,7 @@ class TrapSender(object):
         # TODO   subprocess.Popen(['snmptrap', '-v', '1'])
 
     def send_snmp_v2c_trap(self, notification):
+        #snmptrap -v 2c -c public localhost "" OI-HM-MIB::notification nodeHostname s a nodeMachineId u 4 a u 1
         smnptrap = subprocess.Popen([
             'snmptrap','-v', '2c',
             '-c', self.conf.snmp_community_string,

@@ -17,12 +17,13 @@ class Daemon:
     Usage: subclass the Daemon class and override the run() method
     """
     def __init__(self, pidfile, username='nodechecker', stdin='/dev/null', stdout='/dev/null',
-                 stderr='/dev/null'):
+                 stderr='/dev/null', conf=None):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
         self.pidfile = pidfile
-	self.username = username
+        self.username = username
+        self.conf = conf
 
     def daemonize(self):
         """

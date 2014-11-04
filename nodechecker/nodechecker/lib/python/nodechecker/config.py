@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 
 import ConfigParser
+import os
+import inspect
 
 
 class Config(object):
@@ -9,7 +11,13 @@ class Config(object):
         config = ConfigParser.SafeConfigParser()
         config.read(conf_file)
 
-        self.hm_root = config.get('hm', 'root')
+        hm_root = config.get('hm', 'root')
+        # move to test
+        if hm_root == 'TEST':
+            test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+            os.path.join(test_dir, 'nodechecker.conf')
+        else:
+            self.hm_root = hm_root
 
         self.node_mode = config.get('node', 'mode')
         self.node_log_level = config.get('node', 'log_level')

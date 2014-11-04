@@ -24,8 +24,7 @@ class NodeManager(object):
     def __init__(self, conf):
         self.conf = conf
         self.logger = logging.getLogger('nodechecker.nodemanager')
-        self.conf = conf
-       
+
     def configure_node_as_master(self, own_ip):
         self.configure_and_restart_collectd(own_ip, COLLECTD_MODE_SERVER)
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.pound_home, STOP_SCRIPT)])

@@ -4,13 +4,12 @@
 # This is NodeChecker component of Open Infinity Health Monitoring.
 #
 
-from __future__ import division          # Python 3 forward compatibility
-from __future__ import print_function    # Python 3 forward compatibility
+from __future__ import division  # Python 3 forward compatibility
+from __future__ import print_function  # Python 3 forward compatibility
 
 from optparse import OptionParser
 import sys
 import os
-import inspect
 import subprocess
 import logging.handlers
 import socket
@@ -27,13 +26,6 @@ import listener
 import control.nodemanager as nodemanager
 
 # Constants
-
-OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
-OI_COLLECTD_ROOT = "OI_COLLECTD_ROOT"
-CONFIG_FILE = os.path.join("etc", "nodechecker.conf")
-NODE_LIST_FILE = os.path.join("etc", "nodelist.conf")
-ACTIVE_NODE_LIST_FILE = os.path.join(
-      os.environ[OI_HEALTH_MONITORING_ROOT], "etc", "active_nodelist.conf")
 BIG_TIME_DIFF = 1000000
 RRD_HTTP_SERVER_PORT = 8181
 NODE_CREATION_TIMEOUT = 500
@@ -77,6 +69,9 @@ heartbeats_received = 0
 min_time_diff = BIG_TIME_DIFF
 loglevel = ""
 logfile = ""
+node_list_file = ""
+active_node_list_file = ""
+
 
 # HM Node Checker feature functions
 def send(to_nodes, data):
@@ -100,7 +95,7 @@ def start_heartbeat_timer():
     try:
         send(node_list, my_node.to_json())
         heartbeat_timer = threading.Timer(
-                          heartbeat_period, start_heartbeat_timer)
+            heartbeat_period, start_heartbeat_timer)
         heartbeat_timer.start()
     except:
         util.log_exception(sys.exc_info())
@@ -112,7 +107,7 @@ def start_dead_node_scan_timer():
     global dead_node_timer
     dead_node_scan()
     dead_node_timer = threading.Timer(
-                      rrd_scan_period, start_dead_node_scan_timer)
+        rrd_scan_period, start_dead_node_scan_timer)
     dead_node_timer.start()
 
 
@@ -135,7 +130,7 @@ def find_minimal_rrd_timestamp(arg, dirname, names):
         filename = os.path.join(dirname, name)
         if os.path.isfile(filename):
             pipe = subprocess.Popen(
-                   ['rrdtool', 'last', filename], stdout=subprocess.PIPE)
+                ['rrdtool', 'last', filename], stdout=subprocess.PIPE)
             out = pipe.communicate()
             epoch = int(out[0])
             if epoch > 0:
@@ -153,9 +148,8 @@ def check_node_still_dead(node_to_check):
     global min_time_diff
 
     now = time.mktime(time.localtime())
-    path = os.path.join(
-           os.environ[OI_COLLECTD_ROOT], conf.collectd_rrd_dir,
-           node_to_check.hostname)
+    path = os.path.join(conf.collectd_home, conf.collectd_rrd_dir,
+                        node_to_check.hostname)
     lock_resources.acquire()
     try:
         min_time_diff = BIG_TIME_DIFF
@@ -167,11 +161,11 @@ def check_node_still_dead(node_to_check):
             active_node_list.remove(node_to_check)
             dead_node_set.add(node_to_check.ip_address)
             send(node_list, util.json_from_list(
-                  active_node_list, 'active_node_list'))
+                active_node_list, 'active_node_list'))
             #mail_sender.send_node_status_alerts([node_to_check], "DEAD_NODE")
             ntf_manager.process_node_status_alerts([node_to_check], "DEAD_NODE")
             util.store_list_to_file(
-                  active_node_list, ACTIVE_NODE_LIST_FILE, my_node.group_name)
+                active_node_list, active_node_list_file, my_node.group_name)
         new_dead_node_set.remove(node_to_check.ip_address)
     except:
         util.log_exception(sys.exc_info())
@@ -204,9 +198,7 @@ def dead_node_scan():
                 continue
             found_new_dead_node = False
             found_resurrected_node = False
-            path = os.path.join(
-                   os.environ[OI_COLLECTD_ROOT], conf.collectd_rrd_dir,
-                   n.hostname)
+            path = os.path.join(conf.collectd_home, conf.collectd_rrd_dir, n.hostname)
             known_as_dead = n.ip_address in dead_node_set
             #FIXME: Nested try
             try:
@@ -217,20 +209,20 @@ def dead_node_scan():
                 if diff >= dead_node_timeout and not known_as_dead:
                     logger.debug("Found dead node %s" % n.hostname)
                     logger.debug(
-                          "n.hostname = %s,dead_node_set=%s," \
-                          " known_as_dead %s, diff = %s "
-                          % (n.hostname, dead_node_set, str(known_as_dead),
-                          diff))
+                        "n.hostname = %s,dead_node_set=%s," \
+                        " known_as_dead %s, diff = %s "
+                        % (n.hostname, dead_node_set, str(known_as_dead),
+                           diff))
                     found_new_dead_node = True
 
                 elif diff < dead_node_timeout and known_as_dead:
                     logger.debug("Found node that resurrected from dead: %s"
                                  % n.hostname)
                     logger.debug(
-                          "n.hostname = %s,dead_node_set=%s,known_as_dead %s,"\
-                          " diff = %s "
-                          % (n.hostname, dead_node_set, str(known_as_dead),
-                             diff))
+                        "n.hostname = %s,dead_node_set=%s,known_as_dead %s," \
+                        " diff = %s "
+                        % (n.hostname, dead_node_set, str(known_as_dead),
+                           diff))
                     found_resurrected_node = True
 
             except os.error:
@@ -249,26 +241,26 @@ def dead_node_scan():
                         logger.info("Starting timer for new dead node")
                         new_dead_node_set.add(n.ip_address)
                         delayed_dead_node_timer = threading.Timer(
-                              NODE_CREATION_TIMEOUT,
-                              functools.partial(check_node_still_dead, n))
+                            NODE_CREATION_TIMEOUT,
+                            functools.partial(check_node_still_dead, n))
                         delayed_dead_node_timer.start()
                 if found_resurrected_node:
                     logger.info("Found resurrected node, updating collections")
                     if process_node_resurrection(
-                                    n, active_node_list, dead_node_set):
+                            n, active_node_list, dead_node_set):
                         resurrected_node_list.append(n)
 
         if dead_node_list or resurrected_node_list:
             send(node_list, util.json_from_list(
-                  active_node_list, 'active_node_list'))
+                active_node_list, 'active_node_list'))
             util.store_list_to_file(
-                  active_node_list, ACTIVE_NODE_LIST_FILE, my_node.group_name)
+                active_node_list, active_node_list_file, my_node.group_name)
 
             if resurrected_node_list:
                 #mail_sender.send_node_status_alerts(
                 #     resurrected_node_list, "RESURRECTED_NODE")
                 ntf_manager.process_node_status_alerts(
-                     resurrected_node_list, "RESURRECTED_NODE")
+                    resurrected_node_list, "RESURRECTED_NODE")
 
             if dead_node_list:
                 #mail_sender.send_node_status_alerts(
@@ -327,12 +319,13 @@ def wait_for_master_heartbeats(number_of_heartbeat_periods):
 def assign_master(new_master):
     global my_master
     logger.info("Configuring node name %s as a SLAVE, master name is %s"
-                 % (my_node.hostname, new_master.hostname))
+                % (my_node.hostname, new_master.hostname))
     my_master = new_master
     nodemanager.configure_node_as_slave(my_node.ip_address,
                                         RRD_HTTP_SERVER_PORT,
                                         my_master.ip_address,
                                         RRD_HTTP_SERVER_PORT)
+
 
 # HM Node Checker algorithm functions
 
@@ -351,7 +344,7 @@ def become_a_master():
         delayed_dead_node_timer.start()
         start_heartbeat_timer()
         nodemanager.configure_node_as_master(my_node.ip_address)
-        util.store_list_to_file(active_node_list, ACTIVE_NODE_LIST_FILE,
+        util.store_list_to_file(active_node_list, active_node_list_file,
                                 my_node.group_name)
     master_loop()
 
@@ -428,7 +421,7 @@ def master_loop():
         if node_list_changed:
             send(active_node_list, util.json_from_list(active_node_list,
                                                        'active_node_list'))
-            util.store_list_to_file(active_node_list, ACTIVE_NODE_LIST_FILE,
+            util.store_list_to_file(active_node_list, active_node_list_file,
                                     my_node.group_name)
         # 5) release lock
         lock_resources.release()
@@ -454,12 +447,12 @@ def configure_logger():
     global logfile
     logger = logging.getLogger('nodechecker')
     handler = logging.handlers.RotatingFileHandler(
-              logfile, maxBytes=MAX_BYTES_LOGFILE, backupCount=5)
+        logfile, maxBytes=MAX_BYTES_LOGFILE, backupCount=5)
     if loglevel == "debug":
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s [%(levelname)s] [%(name)s] "\
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] [%(name)s] " \
                                   " [%(funcName)s] %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -470,7 +463,7 @@ def process_command_line(argv):
         argv = sys.argv[1:]
     parser = OptionParser()
     parser.add_option("--loglevel", dest="loglevel",
-                      help="log level",  metavar="LOGLEVEL")
+                      help="log level", metavar="LOGLEVEL")
     parser.add_option("--logfile", dest="logfile",
                       help="location of the log file", metavar="LOGFILE")
     parser.add_option("--hostname", dest="hostname",
@@ -493,8 +486,8 @@ def process_command_line(argv):
     parser.add_option("--cloud-zone", dest="cloud_zone",
                       help="cmt cloud zone of this node", metavar="CLOUDZONE")
     parser.add_option("--mode", dest="mode",
-                      help="TEST to run instances on single machine,"\
-                      "otherwise RUN. ", metavar="MODE")
+                      help="TEST to run instances on single machine," \
+                           "otherwise RUN. ", metavar="MODE")
     (options, args) = parser.parse_args()
     return options, args
 
@@ -507,64 +500,64 @@ def process_settings(options, conf, node):
     rrd_scan_period = int(conf.node_rrd_scan_period)
     dead_node_timeout = int(conf.node_dead_node_timeout)
 
-    if options.loglevel:
+    if options and options.loglevel:
         loglevel = options.loglevel
     else:
         loglevel = conf.node_log_level
 
-    if options.logfile:
+    if options and options.logfile:
         logfile = options.logfile
     else:
         logfile = conf.node_log_file
 
-    if options.port:
+    if options and options.port:
         node.port = int(options.port)
     else:
         node.port = int(conf.node_udp_port)
 
-    if options.ip_address:
+    if options and options.ip_address:
         node.ip_address = options.ip_address
     elif conf.node_ip_address == "auto":
         node.ip_address = util.get_ip_address()
     else:
         node.ip_address = conf.node_ip_address
 
-    if options.ip_address_public:
+    if options and options.ip_address_public:
         node.ip_address_public = options.ip_address_public
     elif conf.node_ip_address_public == "auto":
         node.ip_address_public = os.environ["OI_PUBLIC_IP"]
     else:
         node.ip_address_public = conf.node_ip_address_public
 
-    if options.instance_id:
+    if options and options.instance_id:
         node.instance_id = options.instance_id
     elif conf.node_instance_id == "auto":
         node.instance_id = os.environ["OI_INSTANCE_ID"]
     else:
         node.instance_id = conf.instance_id
 
-    if options.cluster_id:
+    if options and options.cluster_id:
         node.cluster_id = options.cluster_id
     elif conf.node_cluster_id == "auto":
         node.cluster_id = os.environ["OI_CLUSTER_ID"]
     else:
         node.cluster_id = conf.node_cluster_id
 
-    if options.machine_id:
+    if options and options.machine_id:
         node.machine_id = options.machine_id
     elif conf.node_machine_id == "auto":
         node.machine_id = os.environ["OI_MACHINE_ID"]
     else:
         node.machine_id = conf.node_machine_id
 
-    if options.cloud_zone:
+    if options and options.cloud_zone:
         node.cloud_zone = options.cloud_zone
     elif conf.node_cloud_zone == "auto":
         node.cloud_zone = os.environ["OI_CLOUD_ZONE"]
     else:
         node.cloud_zone = conf.node_cloud_zone
 
-    if options.mode:
+    if options and options.mode:
         mode = options.mode
     else:
         mode = conf.node_mode
@@ -586,7 +579,7 @@ def wait_for_machine_configured(file_reader):
             if util.get_hostname() != my_node.hostname:
                 logger.debug("Sleep")
                 total_sleep_time += CMT_CONF_WAIT
-                if  total_sleep_time >= MAX_CMT_CONF_WAIT:
+                if total_sleep_time >= MAX_CMT_CONF_WAIT:
                     shutdown(None, 1, "This is boring, bye.")
                 time.sleep(CMT_CONF_WAIT)
             else:
@@ -636,25 +629,22 @@ def set_master():
     assign_master(node_list[0])
 
 
-def init(settings):
+def init(settings=None, conf_obj=None, config_file=None):
     global my_node, ntf_reader, nodelist_reader, ntf_manager, conf
     global heartbeat_listener, active_node_list, dead_node_set, node_list
     global heartbeats_received, master_list, lock_resources
+    global node_list_file, active_node_list_file
 
-    # Construct configuration file reader
+    conf = conf_obj if conf_obj else config.Config(config_file)
 
-    #config_file = os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT],
-    #                           CONFIG_FILE)
-    curr_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-
-    conf = config.Config(os.path.join(curr_dir, CONFIG_FILE))
+    node_list_file = os.path.join(conf.hm_root, "etc", "nodelist.conf")
+    active_node_list_file = os.path.join(conf.hm_root, "etc", "active_nodelist.conf")
 
     # Construct node
     my_node = node.Node()
     process_settings(settings, conf, my_node)
     configure_logger()
-    nodelist_reader = reader.Reader(os.path.join(
-          os.environ[OI_HEALTH_MONITORING_ROOT], NODE_LIST_FILE))
+    nodelist_reader = reader.Reader(node_list_file)
     my_node.group_name = nodelist_reader.get_attribute(my_node.ip_address,
                                                        'GROUP_NAME')
     my_node.machine_type = nodelist_reader.get_attribute(my_node.ip_address,
@@ -665,7 +655,6 @@ def init(settings):
     # Construct remaining members
     lock_resources = threading.RLock()
     ntf_reader = notification.parser.NotificationParser(my_node, conf)
-    #mail_sender = notification.mailsender.MailSender(conf, my_node)
     ntf_manager = notification.manager.NotificationManager(my_node, conf)
     heartbeat_listener = listener.HeartbeatListener(my_node,
                                                     heartbeats_received,
@@ -681,7 +670,7 @@ def init(settings):
 
 def run():
     try:
-        logger.info("Starting")
+        logger.info("Starting...")
         heartbeat_listener.start()
         member_initiation_procedure()
 
@@ -696,16 +685,21 @@ def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
     sys.exit(exit_status)
 
 
-def start():
-    init(None)
+def start(conf_obj_arg):
+    global conf
+    init(conf_obj=conf_obj_arg)
     run()
+
+
+#def init(settings=None, conf_obj=None, config_file=None):
 
 
 def main(argv=None):
-    settings = process_command_line(argv)[0]
-    init(settings)
+    #settings = process_command_line(argv)[0]
+    init(settings=process_command_line(argv)[0], config_file="")
     run()
     return 0
+
 
 if __name__ == '__main__':
     status = main()

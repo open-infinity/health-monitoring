@@ -7,11 +7,14 @@ import nodechecker.notification.snmp
 import nodechecker.config
 import nodechecker.node
 import nodechecker.nodechecker
+import nodechecker.control.servicemanager
+import getpass
 
 node = None
 conf = None
 sender = None
 test_dir = None
+user = getpass.getuser()
 
 
 def setup():
@@ -44,7 +47,11 @@ def teardown():
     #shutil.rmtree(os.path.join(test_dir, 'install_dir', 'var'))
     pass
 
-def test():
+def test_start():
+    global conf, user
     assert 1 == 1
-    nodechecker.nodechecker.main()
+    #nodechecker.nodechecker.main()
+    #service_manager = nodechecker.control.servicemanager.ServiceManager(conf, user=user)
+    #service_manager.start_services()
+    nodechecker.nodechecker.start(conf)
 

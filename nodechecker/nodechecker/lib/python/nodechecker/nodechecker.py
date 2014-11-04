@@ -10,6 +10,7 @@ from __future__ import print_function    # Python 3 forward compatibility
 from optparse import OptionParser
 import sys
 import os
+import inspect
 import subprocess
 import logging.handlers
 import socket
@@ -641,9 +642,12 @@ def init(settings):
     global heartbeats_received, master_list, lock_resources
 
     # Construct configuration file reader
-    config_file = os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT],
-                               CONFIG_FILE)
-    conf = config.Config(config_file)
+
+    #config_file = os.path.join(os.environ[OI_HEALTH_MONITORING_ROOT],
+    #                           CONFIG_FILE)
+    curr_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+    conf = config.Config(os.path.join(curr_dir, CONFIG_FILE))
 
     # Construct node
     my_node = node.Node()

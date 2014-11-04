@@ -9,7 +9,7 @@ class Config(object):
         config = ConfigParser.SafeConfigParser()
         config.read(conf_file)
 
-        self.oi_root = config.get('oi', 'root')
+        self.hm_root = config.get('hm', 'root')
 
         self.node_mode = config.get('node', 'mode')
         self.node_log_level = config.get('node', 'log_level')
@@ -24,6 +24,8 @@ class Config(object):
         self.node_heartbeat_period = config.get('node', 'heartbeat_period')
         self.node_rrd_scan_period = config.get('node', 'rrd_scan_period')
         self.node_dead_node_timeout = config.get('node', 'dead_node_timeout')
+
+        self.nodechecker_home = config.get('nodechecker', 'home')
 
         self.notifications_log_file = config.get('notifications', 'log_file')
         self.notifications_log_file_max_bytes = config.get('notifications', 'log_file_max_bytes')
@@ -43,6 +45,10 @@ class Config(object):
         self.snmp_community_string = config.get('snmp', 'community_string')
         self.snmp_manager = config.get('snmp', 'manager')
 
+        self.collectd_home = config.get('collectd', 'home')
         self.collectd_rrd_dir = config.get('collectd', 'rrd_dir')
 
+        self.rrd_http_server_home = config.get('rrd_http_server', 'home')
+
+        self.pound_home = config.get('pound', 'home')
         self.test_dump_dir = config.get('test', 'dump_dir')

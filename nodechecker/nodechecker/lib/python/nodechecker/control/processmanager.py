@@ -6,7 +6,7 @@ import daemon
 import os
 import subprocess
 
-OI_ROOT= os.environ["OI_ROOT"]
+OI_ROOT=os.environ["OI_ROOT"]
 NODECHECKER_PID_FILE = os.path.join(OI_ROOT, 'healthmonitoring/nodechecker/var/run/oi3-nodechecker.pid')
 
 class NodecheckerDaemon(daemon.Daemon):

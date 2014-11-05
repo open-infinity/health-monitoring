@@ -48,7 +48,7 @@ nodelist_reader = None
 ntf_manager = None
 node_manager = None
 conf = None
-my_node = None
+this_node = None
 dead_node_timer = None
 delayed_dead_node_timer = None
 logger = None
@@ -210,7 +210,7 @@ def wait_for_machine_configured(file_reader):
             break
     if wait_for_conf:
         while True:
-            if util.get_hostname() != my_node.hostname:
+            if util.get_hostname() != this_node.hostname:
                 logger.debug("Sleep")
                 total_sleep_time += CMT_CONF_WAIT
                 if total_sleep_time >= MAX_CMT_CONF_WAIT:
@@ -228,7 +228,7 @@ def update_node_collections(a_node_list):
     if needed"""
 
     try:
-        a_node_list[:] = nodelist_reader.get_node_list(my_node, mode)
+        a_node_list[:] = nodelist_reader.get_node_list(this_node, mode)
 
         # Check if cluster scaled out, or just created
         nodes = [n for n in a_node_list if n not in active_node_list and
@@ -264,7 +264,7 @@ def set_master():
 
 
 def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
-    global my_node, ntf_reader, nodelist_reader, ntf_manager, conf
+    global this_node, ntf_reader, nodelist_reader, ntf_manager, conf
     global heartbeat_listener, active_node_list, dead_node_set, node_list
     global heartbeats_received, master_list, lock_resources
     global node_list_file, active_node_list_file
@@ -277,22 +277,19 @@ def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     active_node_list_file = os.path.join(conf.hm_root, 'nodechecker', "etc", "active_nodelist.conf")
 
     # Construct node
-    my_node = node.Node()
-    process_settings(settings, conf, my_node)
+    this_node = node.Node()
+    process_settings(settings, conf, this_node)
     configure_logger()
     nodelist_reader = reader.Reader(node_list_file)
-    my_node.group_name = nodelist_reader.get_attribute(my_node.ip_address,
-                                                       'GROUP_NAME')
-    my_node.machine_type = nodelist_reader.get_attribute(my_node.ip_address,
-                                                         'MACHINE_TYPE')
-    my_node.hostname = nodelist_reader.get_attribute(my_node.ip_address,
-                                                     'HOST_NAME')
+    this_node.group_name = nodelist_reader.get_attribute(this_node.ip_address, 'GROUP_NAME')
+    this_node.machine_type = nodelist_reader.get_attribute(this_node.ip_address, 'MACHINE_TYPE')
+    this_node.hostname = nodelist_reader.get_attribute(this_node.ip_address, s'HOST_NAME')
 
     # Construct remaining members
     lock_resources = threading.RLock()
-    ntf_reader = notification.parser.NotificationParser(my_node, conf)
-    ntf_manager = notification.manager.NotificationManager(my_node, conf)
-    heartbeat_listener = udp_listener.UDPSocketListener(my_node,
+    ntf_reader = notification.parser.NotificationParser(this_node, conf)
+    ntf_manager = notification.manager.NotificationManager(this_node, conf)
+    heartbeat_listener = udp_listener.UDPSocketListener(this_node,
                                                     heartbeats_received,
                                                     master_list,
                                                     active_node_list,
@@ -302,6 +299,10 @@ def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     node_list = update_node_collections(node_list)[1]
     wait_for_machine_configured(nodelist_reader)
     set_master()
+    
+    # Setup signal handlers
+    signal.signal(signal.SIGTERM, sigterm_handler)
+    signal.signal(signal.SIGINT, sigint_handler)
 
 
 def sigterm_handler(signum, frame):
@@ -317,8 +318,7 @@ def sigint_handler(signum, frame):
 def run():
     try:
         logger.info("Starting...")
-        heartbeat_listener.start()
-        member_initiation_procedure()
+        loop.start()
 
     except KeyboardInterrupt:
         shutdown(None, 0, "Keyboard interrupt, shutting down")
@@ -332,15 +332,12 @@ def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
 
 
 def start(conf_obj, node_manager_obj):
-    signal.signal(signal.SIGTERM, sigterm_handler)
-    signal.signal(signal.SIGINT, sigint_handler)
-
     init(conf_obj=conf_obj, node_manager_obj=node_manager_obj)
+    loop = Loop() 
+    loop.start()
 
-    run()
-
-
-#def init(settings=None, conf_obj=None, config_file=None):
+def stop():
+    loop.stop()
 
 
 def main(argv=None):

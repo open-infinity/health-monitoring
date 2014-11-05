@@ -24,8 +24,8 @@ class HeartbeatListener(threading.Thread):
 
     def run(self):
         bind_address = "0.0.0.0"
-        self.__server = SocketServer.UDPServer(
-              (bind_address, self.node.port), HeartbeatUDPHandler)
+        self.__server = SocketServer.UDPServer((bind_address, self.node.port),
+                                               HeartbeatUDPHandler)
 
         self.__server.logger = self.logger
         self.__server.node = self.node

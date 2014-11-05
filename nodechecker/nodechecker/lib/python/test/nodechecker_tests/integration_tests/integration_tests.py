@@ -1,7 +1,5 @@
 
 import os
-import sys
-import shutil
 import inspect
 import nodechecker.notification.notification
 import nodechecker.notification.snmp
@@ -9,80 +7,49 @@ import nodechecker.config
 import nodechecker.node
 import nodechecker.nodechecker
 import nodechecker.control.servicemanager
-import getpass
+from mock import MagicMock
+from datetime import datetime
 
-node = None
+node_manager = None
 conf = None
-sender = None
-test_dir = None
-user = getpass.getuser()
 
 
-def setup():
-    global node, conf, sender, test_dir
-    
-    node = nodechecker.node.Node(hostname='test1', port=10, cloud_zone='cloudzone1', ip_address_public='1.2.3.4',
-                                     instance_id=1, cluster_id=1, machine_id=1)
+def setup_module():
+    global node_manager, conf
 
+    # Create config file reader
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    print(test_dir)
-    conf_file = os.path.join(test_dir, 'nodechecker.conf')
-    conf = nodechecker.config.Config(conf_file)
+    conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
 
-    # setup healhmonitoring root and tree
-    conf.hm_root = os.path.join(test_dir, 'hm_root')
-    nodechecker_home = os.path.join(conf.hm_root, conf.nodechecker_home)
-    collectd_home = os.path.join(conf.hm_root, conf.collectd_home)
-    pound_home = os.path.join(conf.hm_root, conf.pound_home)
-    rrd_http_server_home = os.path.join(conf.hm_root, conf.rrd_http_server_home)
+    # Create mock node_manager
+    node_manager = nodechecker.control.nodemanager.NodeManager(conf)
+    node_manager.configure_node_as_master = MagicMock()
+    node_manager.configure_node_as_slave = MagicMock()
 
-    # traverse 5 levels up in directory tree, to nodechecker root dir
-    # TODO: is there some search functcion available? implement one if not
-    p1_dir = os.path.abspath(os.path.join(test_dir, os.pardir))
-    p2_dir = os.path.abspath(os.path.join(p1_dir, os.pardir))
-    p3_dir = os.path.abspath(os.path.join(p2_dir, os.pardir))
-    p4_dir = os.path.abspath(os.path.join(p3_dir, os.pardir))
-    src_dir = os.path.abspath(os.path.join(p4_dir, os.pardir))
+    # Configure path to healhmonitoring directory structure to be used for testing
+    now = datetime.now()
+    sub_dir_name = "".join(['hm_root', '-', str(now.year), '-', str(now.month), '-',
+                            str(now.day), '-', str(now.hour), '-', str(now.minute),
+                            '-', str(now.second)])
+    conf.hm_root = os.path.join(test_dir, 'output', sub_dir_name)
 
-    var_dir = os.path.join(src_dir, 'opt', 'monitoring', 'var')
-    # todo: remove exception handling
-    try:
-        print(test_dir)
 
-        shutil.copytree(var_dir, os.path.join(nodechecker_home, 'var'))
-        os.makedirs(os.path.join(nodechecker_home, 'var', 'log'))
-        os.makedirs(collectd_home)
-        print(1)
-        os.makedirs(pound_home)
-        print(2)
-
-        os.makedirs(rrd_http_server_home)
-        print(3)
-        # copy nodechecker.conf to hm_root/nodechecker/etc
-        #data/hm_root/nodechecker/etc
-        print(test_dir)
-        etc_dir = os.path.join(test_dir, 'data', 'hm_root', 'nodechecker', 'etc')
-        shutil.copytree(etc_dir, os.path.join(nodechecker_home, 'etc'))
-        #shutil.copyfile(os.path.join(conf_from_dir, 'nodelist.conf'), os.path.join(nodechecker_home, 'etc', 'nodelist.conf'))
-        #shutil.copyfile(os.path.join(conf_from_dir, 'active_nodelist.conf'), os.path.join(nodechecker_home, 'etc', 'active_nodelist.conf'))
-
-        
-
-        print('env ready')
-    except:
-        print(sys.exc_info())
-        pass
-
-def teardown():
-    #shutil.rmtree(os.path.join(test_dir, 'hm_root'))
+def teardown_module():
     pass
 
+
 def test_start():
-    print('enter')
-    global conf, user
+    global node_manager, conf
+    print('enter test_start()')
+    #self.node_manager.configure_node_as_slave(1, 2)
     assert 1 == 1
     #nodechecker.nodechecker.main()
     #service_manager = nodechecker.control.servicemanager.ServiceManager(conf, user=user)
     #service_manager.start_services()
-    nodechecker.nodechecker.start(conf)
+    node_manager.configure_node_as_slave('1.2.3.4',8811,'1.2.3.4',83)
+    nodechecker.nodechecker.start(conf, node_manager)
 
+
+def test_start_2():
+    print('enter test_start_2()')
+    assert True

@@ -26,16 +26,16 @@ class NodeManager(object):
         self.logger = logging.getLogger('nodechecker.nodemanager')
 
     def configure_node_as_master(self, own_ip):
-        self.configure_and_restart_collectd(own_ip, COLLECTD_MODE_SERVER)
+        self.__configure_and_restart_collectd(own_ip, COLLECTD_MODE_SERVER)
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.pound_home, STOP_SCRIPT)])
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.rrd_http_server_home, START_SCRIPT)])
 
     def configure_node_as_slave(self, own_ip, own_port, server_ip, server_port):
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.rrd_http_server_home, STOP_SCRIPT)])
-        self.configure_and_restart_collectd(server_ip, COLLECTD_MODE_CLIENT)
-        self.configure_and_restart_pound(own_ip, own_port, server_ip, server_port)
+        self.__configure_and_restart_collectd(server_ip, COLLECTD_MODE_CLIENT)
+        self.__configure_and_restart_pound(own_ip, own_port, server_ip, server_port)
 
-    def configure_and_restart_collectd(self, ip, mode):
+    def __configure_and_restart_collectd(self, ip, mode):
         if mode not in [COLLECTD_MODE_CLIENT, COLLECTD_MODE_SERVER]:
             self.logger.error("Error configuring collectd")
             return
@@ -63,7 +63,7 @@ class NodeManager(object):
                                              self.conf.collectd_home,
                                              COLLECTD_RESTART_SCRIPT)])
 
-    def configure_and_restart_pound(self, own_ip, own_port, server_ip, server_port):
+    def __configure_and_restart_pound(self, own_ip, own_port, server_ip, server_port):
         global logger
         try:
             tpl_file = os.path.join(self.conf.hm_root, self.conf.nodechecker_home, POUND_CONFIG_TEMPLATE_FILE)

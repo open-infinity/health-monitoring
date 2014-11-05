@@ -23,7 +23,7 @@ import reader
 import util
 import node
 import listener
-import control.nodemanager as nodemanager
+import control.nodemanager
 
 # Constants
 BIG_TIME_DIFF = 1000000
@@ -49,6 +49,7 @@ ntf_reader = None
 nodelist_reader = None
 #mail_sender = None
 ntf_manager = None
+node_manager = None
 conf = None
 my_node = None
 dead_node_timer = None
@@ -67,8 +68,8 @@ rrd_scan_period = 1
 dead_node_timeout = 1
 heartbeats_received = 0
 min_time_diff = BIG_TIME_DIFF
-loglevel = ""
-logfile = ""
+log_level = ""
+log_file = ""
 node_list_file = ""
 active_node_list_file = ""
 
@@ -317,11 +318,11 @@ def wait_for_master_heartbeats(number_of_heartbeat_periods):
 
 
 def assign_master(new_master):
-    global my_master
+    global my_master, node_manager
     logger.info("Configuring node name %s as a SLAVE, master name is %s"
                 % (my_node.hostname, new_master.hostname))
     my_master = new_master
-    nodemanager.configure_node_as_slave(my_node.ip_address,
+    node_manager.configure_node_as_slave(my_node.ip_address,
                                         RRD_HTTP_SERVER_PORT,
                                         my_master.ip_address,
                                         RRD_HTTP_SERVER_PORT)
@@ -334,7 +335,7 @@ def become_a_master():
     """Triggers actions needed to prepare the node for running
     in MASTER role. Runs the master loop.
     """
-    global delayed_dead_node_timer
+    global delayed_dead_node_timer, node_manager
 
     if my_node.role != "MASTER":
         my_node.role = "MASTER"
@@ -343,7 +344,7 @@ def become_a_master():
                                                   start_dead_node_scan_timer)
         delayed_dead_node_timer.start()
         start_heartbeat_timer()
-        nodemanager.configure_node_as_master(my_node.ip_address)
+        node_manager.configure_node_as_master(my_node.ip_address)
         util.store_list_to_file(active_node_list, active_node_list_file,
                                 my_node.group_name)
     master_loop()
@@ -443,18 +444,18 @@ def slave_loop(a_node_list):
 
 def configure_logger():
     global logger
-    global loglevel
-    global logfile
+    global log_level
+    global log_file
     global conf
     logger = logging.getLogger('nodechecker')
-    log_file_path = os.path.join(conf.hm_root, conf.nodechecker_home, logfile)
+    log_file_path = os.path.join(conf.hm_root, conf.nodechecker_home, log_file)
     handler = logging.handlers.RotatingFileHandler(
         log_file_path, maxBytes=MAX_BYTES_LOGFILE, backupCount=5)
-    if loglevel == "debug":
+    if log_level == "debug":
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s [%(levelname)s] [%(name)s] " \
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] [%(name)s] "
                                   " [%(funcName)s] %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -464,10 +465,10 @@ def process_command_line(argv):
     if argv is None:
         argv = sys.argv[1:]
     parser = OptionParser()
-    parser.add_option("--loglevel", dest="loglevel",
-                      help="log level", metavar="LOGLEVEL")
-    parser.add_option("--logfile", dest="logfile",
-                      help="location of the log file", metavar="LOGFILE")
+    parser.add_option("--log_level", dest="log_level",
+                      help="log level", metavar="log_level")
+    parser.add_option("--log_file", dest="log_file",
+                      help="location of the log file", metavar="log_file")
     parser.add_option("--hostname", dest="hostname",
                       help="hostname of this node", metavar="HOSTNAME")
     parser.add_option("--port", dest="port",
@@ -495,22 +496,22 @@ def process_command_line(argv):
 
 
 def process_settings(options, conf, node):
-    global loglevel, logfile, mode
+    global log_level, log_file, mode
     global heartbeat_period, rrd_scan_period, dead_node_timeout
 
     heartbeat_period = int(conf.node_heartbeat_period)
     rrd_scan_period = int(conf.node_rrd_scan_period)
     dead_node_timeout = int(conf.node_dead_node_timeout)
 
-    if options and options.loglevel:
-        loglevel = options.loglevel
+    if options and options.log_level:
+        log_level = options.log_level
     else:
-        loglevel = conf.node_log_level
+        log_level = conf.node_log_level
 
-    if options and options.logfile:
-        logfile = oggeroptions.logfile
+    if options and options.log_file:
+        log_file = options.log_file
     else:
-        logfile = conf.node_log_file
+        log_file = conf.node_log_file
 
     if options and options.port:
         node.port = int(options.port)
@@ -633,13 +634,15 @@ def set_master():
     assign_master(node_list[0])
 
 
-def init(settings=None, conf_obj=None, config_file=None):
+def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     global my_node, ntf_reader, nodelist_reader, ntf_manager, conf
     global heartbeat_listener, active_node_list, dead_node_set, node_list
     global heartbeats_received, master_list, lock_resources
     global node_list_file, active_node_list_file
+    global node_manager
 
     conf = conf_obj if conf_obj else config.Config(config_file)
+    node_manager = node_manager_obj
 
     node_list_file = os.path.join(conf.hm_root, 'nodechecker', "etc", "nodelist.conf")
     active_node_list_file = os.path.join(conf.hm_root, 'nodechecker', "etc", "active_nodelist.conf")
@@ -689,9 +692,9 @@ def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
     sys.exit(exit_status)
 
 
-def start(conf_obj_arg):
-    global conf
-    init(conf_obj=conf_obj_arg)
+def start(conf_obj, node_manager_obj):
+    init(conf_obj=conf_obj, node_manager_obj=node_manager_obj)
+
     run()
 
 

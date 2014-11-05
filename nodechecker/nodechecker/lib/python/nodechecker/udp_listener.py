@@ -9,7 +9,7 @@ import util
 import node
 
 
-class HeartbeatListener(threading.Thread):
+class UDPSocketListener(threading.Thread):
     """Implements a thread used for listening to master heartbeats."""
     def __init__(self, a_node, a_heartbeats_received, a_master_list,
                  a_active_node_list, a_lock_resources):
@@ -25,7 +25,7 @@ class HeartbeatListener(threading.Thread):
     def run(self):
         bind_address = "0.0.0.0"
         self.__server = SocketServer.UDPServer((bind_address, self.node.port),
-                                               HeartbeatUDPHandler)
+                                               UDPDataHandler)
 
         self.__server.logger = self.logger
         self.__server.node = self.node
@@ -41,9 +41,9 @@ class HeartbeatListener(threading.Thread):
             self.__server = None
 
 
-class HeartbeatUDPHandler(SocketServer.BaseRequestHandler):
+class UDPDataHandler(SocketServer.BaseRequestHandler):
     """Handles data received by a heartbeat signal
-       Note accessing of HeartbeatListener internal variables
+       Note accessing of UDPSocketListener internal variables
        through server object, e.g. self.server.active_node_list
     """
 

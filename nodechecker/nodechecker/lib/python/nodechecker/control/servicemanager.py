@@ -2,7 +2,7 @@
 
 # FIXME
 #from nodechecker.nodechecker import *
-import nodechecker.nodechecker
+import nodechecker.main
 import daemon
 import os
 import subprocess
@@ -18,7 +18,7 @@ SUDO = 'sudo'
 class NodecheckerDaemon(daemon.Daemon):
     def run(self):
         #node_manager = control.nodemanager.NodeManager(conf)
-        nodechecker.nodechecker.start(self.conf, self.node_manager)
+        nodechecker.main.start(self.conf, self.node_manager)
 
 
 class ServiceManager(object):

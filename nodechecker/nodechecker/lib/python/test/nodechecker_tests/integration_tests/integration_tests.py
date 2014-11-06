@@ -5,7 +5,7 @@ import nodechecker.notification.notification
 import nodechecker.notification.snmp
 import nodechecker.config
 import nodechecker.node
-import nodechecker.nodechecker
+import nodechecker.main
 import nodechecker.control.servicemanager
 from mock import MagicMock
 from datetime import datetime
@@ -39,14 +39,6 @@ def teardown_module():
     pass
 
 
-def sigterm_handler():
-    print("****SIGTERM**************")
-
-
-def sigint_handler():
-    print("****SIGINT**************")
-
-
 def test_start_and_become_master():
     global node_manager, conf
     print('enter test_start()')
@@ -55,12 +47,12 @@ def test_start_and_become_master():
     #nodechecker.nodechecker.main()
     #service_manager = nodechecker.control.servicemanager.ServiceManager(conf, user=user)
     #service_manager.start_services()
-    node_manager.configure_node_as_slave('1.2.3.4',8811,'1.2.3.4',83)
-    signal.signal(signal.SIGTERM, sigterm_handler)
-    signal.signal(signal.SIGINT, sigint_handler)
+    #node_manager.configure_node_as_slave('1.2.3.4',8811,'1.2.3.4',83)
+    #signal.signal(signal.SIGTERM, sigterm_handler)
+    #signal.signal(signal.SIGINT, sigint_handler)
 
 
-    nodechecker.nodechecker.start(conf, node_manager)
+    #nodechecker.nodechecker.start(conf, node_manager)
 
 
 def test_start_and_become_slave():

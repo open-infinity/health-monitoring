@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 #
-# This is NodeChecker component of Open Infinity Health Monitoring.
+# Main thread of nodechecker
 #
 
 from __future__ import division  # Python 3 forward compatibility
@@ -20,7 +20,7 @@ import notification.manager
 import reader
 import util
 import node
-import udp_listener
+import context
 
 # Constants
 BIG_TIME_DIFF = 1000000
@@ -53,6 +53,7 @@ dead_node_timer = None
 delayed_dead_node_timer = None
 logger = None
 lock_resources = None
+stop_event = None
 
 # State variables
 role = "SLAVE"
@@ -69,6 +70,8 @@ log_level = ""
 log_file = ""
 node_list_file = ""
 active_node_list_file = ""
+
+ctx = None
 
 
 def configure_logger():
@@ -260,7 +263,8 @@ def update_node_collections(a_node_list):
 def set_master():
     if not node_list:
         shutdown(None, 1, "Unable to set a master for the node")
-    assign_master(node_list[0])
+    # !!!! warn, this was moved
+    #assign_master(node_list[0])
 
 
 def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
@@ -268,8 +272,9 @@ def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     global heartbeat_listener, active_node_list, dead_node_set, node_list
     global heartbeats_received, master_list, lock_resources
     global node_list_file, active_node_list_file
-    global node_manager
+    global node_manager, ctx
 
+    ctx = context.Context()
     conf = conf_obj if conf_obj else config.Config(config_file)
     node_manager = node_manager_obj
 
@@ -283,17 +288,19 @@ def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     nodelist_reader = reader.Reader(node_list_file)
     this_node.group_name = nodelist_reader.get_attribute(this_node.ip_address, 'GROUP_NAME')
     this_node.machine_type = nodelist_reader.get_attribute(this_node.ip_address, 'MACHINE_TYPE')
-    this_node.hostname = nodelist_reader.get_attribute(this_node.ip_address, s'HOST_NAME')
+    this_node.hostname = nodelist_reader.get_attribute(this_node.ip_address, 'HOST_NAME')
 
     # Construct remaining members
     lock_resources = threading.RLock()
     ntf_reader = notification.parser.NotificationParser(this_node, conf)
     ntf_manager = notification.manager.NotificationManager(this_node, conf)
-    heartbeat_listener = udp_listener.UDPSocketListener(this_node,
-                                                    heartbeats_received,
-                                                    master_list,
-                                                    active_node_list,
-                                                    lock_resources)
+
+    # Mved to worker
+    #heartbeat_listener = udp_listener.UDPSocketListener(this_node,
+    #                                                heartbeats_received,
+    #                                                master_list,
+    #                                               active_node_list,
+    #                                                lock_resources)
 
     # Prepare node collections
     node_list = update_node_collections(node_list)[1]
@@ -303,6 +310,9 @@ def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     # Setup signal handlers
     signal.signal(signal.SIGTERM, sigterm_handler)
     signal.signal(signal.SIGINT, sigint_handler)
+
+    # Setup event
+    stop_event = threading.Event()
 
 
 def sigterm_handler(signum, frame):
@@ -316,6 +326,7 @@ def sigint_handler(signum, frame):
 
 
 def run():
+    global loop
     try:
         logger.info("Starting...")
         loop.start()
@@ -327,17 +338,22 @@ def run():
 def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
     util.log_message(message, exc_info)
     heartbeat_listener.shutdown()
-    cancel_timers()
+    # TODO: WARNING, the function moved
+    # cancel_timers()
     sys.exit(exit_status)
 
 
 def start(conf_obj, node_manager_obj):
+    global loop, stop_event, lock_resources
     init(conf_obj=conf_obj, node_manager_obj=node_manager_obj)
-    loop = Loop() 
+    loop = loop.Loop(None,  lock_resources, stop_event)
     loop.start()
 
+
 def stop():
-    loop.stop()
+    global stop_event
+    stop_event.set()
+    #loop.stop()
 
 
 def main(argv=None):

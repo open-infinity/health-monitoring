@@ -25,94 +25,57 @@ import node
 import udp_listener
 
 
-
-
-
-
-# Constants
-BIG_TIME_DIFF = 1000000
-RRD_HTTP_SERVER_PORT = 8181
-NODE_CREATION_TIMEOUT = 500
-MAX_BYTES_LOGFILE = 5000000
-MAX_CMT_CONF_WAIT = 600
-CMT_CONF_WAIT = 10
-
-# Global variables
-
-# Collections
-node_list = []
-active_node_list = []
-dead_node_set = set()
-new_dead_node_set = set()
-master_list = []
-
-# Classes
-heartbeat_timer = None
-heartbeat_listener = None
-ntf_reader = None
-nodelist_reader = None
-#mail_sender = None
-ntf_manager = None
-node_manager = None
-conf = None
-this_node = None
-dead_node_timer = None
-delayed_dead_node_timer = None
-logger = None
-lock_resources = None
-
-# State variables
-role = "SLAVE"
-mode = "RUN"
-my_master = None
-
-# Configuration variables
-heartbeat_period = 1
-rrd_scan_period = 1
-dead_node_timeout = 1
-heartbeats_received = 0
-min_time_diff = BIG_TIME_DIFF
-log_level = ""
-log_file = ""
-node_list_file = ""
-active_node_list_file = ""
-
-
-class Loop(threading.Thread):
-    def __init__(self, a_node, a_heartbeats_received, a_master_list,
-                 a_active_node_list, a_lock_resources):
+class Worker(threading.Thread):
+    def __init__(self, a_context, a_lock):
         threading.Thread.__init__(self)
-        self.__logger = logging.getLogger('nodechecker.loop')
-        self.__node = a_node
-        self.__master_list = a_master_list
-        self.__active_node_list = a_active_node_list
-        self.__lock_resources = a_lock_resources
-        self.__master = None
-        
+        self._logger = logging.getLogger('nodechecker.loop')
+        self._context = a_context
+        self._lock = a_lock
+        self._continue = True
+        #self._udp_listener = udp_listener.UDPSocketListener(self._context)
+        #self._udp_listener = udp_listener.UDPSocketListener(this_node,
+        #                                                     heartbeats_received,
+        #                                                    master_list,
+        #                                                     active_node_list,
+        #                                                     lock_resources)
+
     def run(self):
-        heartbeat_listener.start()
-        loop_forever()
-        
-        
+        #self._udp_listener.start()
+        self._loop_forever()
+        self._cleanup()
+
     def shutdown(self):
+        self._continue = False
+
+    def _loop_forever(self):
+        while self._continue:
+            #time.sleep(2)
+            print('looping')
+        print('wake up')
+
+    def _cleanup(self):
+        print('cleaning')
         pass
-        
-            
-    def loop_forever(self):
-        a = 0
-        while True:
-            try:
-                my_pos = active_node_list.index(this_node)
-                logger.debug("My position in the list is %d, a = %d" % (my_pos, a))
-                if listen_to_master_heartbeats(1) == "TOO_LOW":
-                    if a == my_pos:
-                        self.become_a_master()
-                    a = (a + 1) % len(active_node_list)
-                else:
-                    self.become_a_slave()
-            except:
-                shutdown(sys.exc_info
-                
+
+        # a = 0
+        # while True:
+        # time.sleep(2)
+        #    print('wake up')
+
+# try:
+#
+# my_pos = active_node_list.index(this_node)
+# logger.debug("My position in the list is %d, a = %d" % (my_pos, a))
+#                if listen_to_master_heartbeats(1) == "TOO_LOW":
+#                   if a == my_pos:
+#                       self.become_a_master()
+#                    a = (a + 1) % len(active_node_list)
+#                else:
+#                    self.become_a_slave()
+#            except:
+#                shutdown(sys.exc_info)
+
+'''
     def listen_to_master_heartbeats(self, number_of_heartbeat_periods):
         """Listens to master heartbeat signals.
         Depending on of number of received signals, a decision is made on
@@ -529,6 +492,5 @@ class Loop(threading.Thread):
         if not node_list:
             shutdown(None, 1, "Unable to set a master for the node")
         assign_master(node_list[0])
+'''
 
-
-    

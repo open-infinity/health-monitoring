@@ -7,7 +7,7 @@ import nodechecker.notification.notification
 import nodechecker.notification.snmp
 import nodechecker.config
 import nodechecker.node
-import nodechecker.nodechecker
+import nodechecker.main
 import nodechecker.control.servicemanager
 from mock import MagicMock
 from datetime import datetime

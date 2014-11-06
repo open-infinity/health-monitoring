@@ -54,24 +54,17 @@ def create_tree(test_dir, nodechecker_home, collectd_home, pound_home, rrd_http_
     src_dir = os.path.abspath(os.path.join(p4_dir, os.pardir))
 
     var_dir = os.path.join(src_dir, 'opt', 'monitoring', 'var')
-    # todo: remove exception handling
     try:
-        print(test_dir)
         shutil.copytree(var_dir, os.path.join(nodechecker_home, 'var'))
         os.makedirs(os.path.join(nodechecker_home, 'var', 'log'))
         os.makedirs(collectd_home)
-        print(1)
         os.makedirs(pound_home)
-        print(2)
 
         os.makedirs(rrd_http_server_home)
-        print(3)
-        # copy nodechecker.conf to hm_root/nodechecker/etc
-        #data/hm_root/nodechecker/etc
-        print(test_dir)
         etc_dir = os.path.join(test_dir, 'data', 'hm_root', 'nodechecker', 'etc')
         shutil.copytree(etc_dir, os.path.join(nodechecker_home, 'etc'))
     except:
         print(sys.exc_info())
-        pass
+        
+        
 

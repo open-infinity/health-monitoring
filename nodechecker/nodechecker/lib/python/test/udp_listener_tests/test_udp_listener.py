@@ -22,7 +22,7 @@ def setup():
     resource_lock = threading.RLock()
     ctx = nodechecker.context.Context()
 
-
+'''
 def test_start_stop():
     global conf, resource_lock, ctx
     this_node = nodechecker.node.Node()
@@ -38,7 +38,7 @@ def test_start_stop():
     print("awake, shutting down udp_listener")
     udp_listener.shutdown()
     #assert udp_listener.isAlive() is False
-
+'''
 
 
 

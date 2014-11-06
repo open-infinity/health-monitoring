@@ -29,10 +29,10 @@ class Worker(threading.Thread):
     def __init__(self, a_context, a_lock):
         threading.Thread.__init__(self)
         self._logger = logging.getLogger('nodechecker.loop')
-        self._context = a_context
+        self._ctx= a_context
         self._lock = a_lock
         self._continue = True
-        #self._udp_listener = udp_listener.UDPSocketListener(self._context)
+        self._udp_listener = udp_listener.UDPSocketListener(self._ctx)
         #self._udp_listener = udp_listener.UDPSocketListener(this_node,
         #                                                     heartbeats_received,
         #                                                    master_list,
@@ -40,23 +40,61 @@ class Worker(threading.Thread):
         #                                                     lock_resources)
 
     def run(self):
-        #self._udp_listener.start()
+        self._udp_listener.start()
         self._loop_forever()
-        self._cleanup()
+        self._do_shutdown()
 
     def shutdown(self):
         self._continue = False
 
     def _loop_forever(self):
         while self._continue:
-            #time.sleep(2)
-            print('looping')
+            self._master_election()
+        self._do_shutdown()    
         print('wake up')
 
-    def _cleanup(self):
-        print('cleaning')
+    def _do_shutdown(self, exc_info=None, exit_status=1, message="Shutting down"):
+    #def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
+        #nodechecker.util.log_message(message, exc_info)
+        self._udp_listener.shutdown()
+        # TODO: WARNING, the function moved
+        self._cancel_timers()
+        #sys.exit(exit_status)
+        print('do_shutdown_exit') 
+         
+    def _become_a_slave(self):
         pass
-
+    
+    def _become_a_master(self):
+        pass
+        
+    def _listen_to_master_heartbeats(self, arg):
+        pass
+        
+    def _cancel_timers(self):
+        pass    
+    
+    def master_election(self):
+        print('ENTER master_election')
+        index = 0
+        try:
+            my_pos = self._ctx.active_node_list.index(self._ctx.this_node)
+            print("My position in the list:" + str(my_pos) + " index:" + str(index))
+            
+            #logger.debug("My position in the list is %d, a = %d" % (my_pos, index))
+            if self._listen_to_master_heartbeats(1) == "TOO_LOW": 
+               print ("too low") 
+               if index == my_pos:
+                   print("becme master")
+                   self._become_a_master()
+               index = (index + 1) % len(self._ctx.active_node_list)
+               print("index:" + str(index))
+            else:
+                print("bcme slave")
+                self._become_a_slave()
+        except:
+            self._do_shutdown(sys.exc_info)    
+        
         # a = 0
         # while True:
         # time.sleep(2)

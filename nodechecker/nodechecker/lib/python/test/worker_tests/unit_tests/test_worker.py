@@ -40,8 +40,8 @@ def test_master_election_become_master():
     udp_listener.shutdown = MagicMock()
     worker._udp_listener = udp_listener
     
-    worker._listen_to_master_heartbeats = MagicMock()
-    worker._listen_to_master_heartbeats.return_value = "TOO_LOW"
+    worker._get_master_count = MagicMock()
+    worker._get_master_count.return_value = "TOO_LOW"
     
     worker._become_a_master = MagicMock()
     worker._become_slave = MagicMock()
@@ -65,8 +65,8 @@ def test_master_election_become_slave():
     udp_listener.shutdown = MagicMock()
     worker._udp_listener = udp_listener
     
-    worker._listen_to_master_heartbeats = MagicMock()
-    worker._listen_to_master_heartbeats.return_value = "TOO_HIGH"
+    worker._get_master_count = MagicMock()
+    worker._get_master_count.return_value = "TOO_HIGH"
     
     worker._become_a_master = MagicMock()
     worker._become_a_slave = MagicMock()

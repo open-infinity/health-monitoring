@@ -87,39 +87,36 @@ class Worker(threading.Thread):
             # print("My position in the list:" + str(my_pos) + " index:" + str(index))
 
             #logger.debug("My position in the list is %d, a = %d" % (my_pos, index))
-            if self._listen_to_master_heartbeats(1) == "TOO_LOW":
+            count = self._get_master_count()
+
+            # In case that master has changed, assign a new master to self
+            if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
+                if self._ctx.my_master not in self._ctx.master_list:
+                    self.assign_master(self._ctx.master_list[0])
+
+            # If there is not enough of masters, and own ranking on the list
+            # equals index, then become master
+            if count == "TOO_LOW":
                 #print ("too low")
                 if index == my_pos:
                     #print("becme master")
                     self._become_a_master()
                 new_index = (index + 1) % len(self._ctx.active_node_list)
                 #print("index:" + str(index))
+
+            # In case that there is enough or too many masters, become
+            # slave
             else:
                 #print("bcme slave")
                 self._become_a_slave()
+
+
+
         except:
             self._do_shutdown(sys.exc_info)
         return new_index
 
-        # a = 0
-        # while True:
-        # time.sleep(2)
-        # print('wake up')
-
-    # try:
-    #
-    # my_pos = active_node_list.index(this_node)
-    # logger.debug("My position in the list is %d, a = %d" % (my_pos, a))
-    # if listen_to_master_heartbeats(1) == "TOO_LOW":
-    #                   if a == my_pos:
-    #                       self.become_a_master()
-    #                    a = (a + 1) % len(active_node_list)
-    #                else:
-    #                    self.become_a_slave()
-    #            except:
-    #                shutdown(sys.exc_info)
-
-    def _listen_to_master_heartbeats(self, number_of_heartbeat_periods):
+    def _get_master_count(self, number_of_heartbeat_periods=1):
         """Listens to master heartbeat signals.
         Depending on of number of received signals, a decision is made on
         how to proceed:
@@ -148,9 +145,13 @@ class Worker(threading.Thread):
                 ret = "TOO_LOW"
             elif len(self._ctx.master_list) > expected_masters:
                 ret = "TOO_HIGH"
-            if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
-                if self._ctx.my_master not in self._ctx.master_list:
-                    self.assign_master(self._ctx.master_list[0])
+            else:
+                ret = "FINE"
+
+            #if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
+            #    if self._ctx.my_master not in self._ctx.master_list:
+            #        self.assign_master(self._ctx.master_list[0])
+
         except:
             util.log_exception(sys.exc_info())
         finally:

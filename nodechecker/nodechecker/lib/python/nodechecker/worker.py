@@ -66,11 +66,11 @@ class Worker(threading.Thread):
         self._udp_listener.join()
         #print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Worker._do_shutdown()')
 
-    def _become_a_slave(self):
-        pass
+    #def _become_a_slave(self):
+    #    pass
 
-    def _become_a_master(self):
-        pass
+    #def _become_a_master(self):
+    #    pass
 
     #def _listen_to_master_heartbeats(self, arg):
     #    pass
@@ -92,7 +92,7 @@ class Worker(threading.Thread):
             # In case that master has changed, assign a new master to self
             if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
                 if self._ctx.my_master not in self._ctx.master_list:
-                    self.assign_master(self._ctx.master_list[0])
+                    self._assign_master(self._ctx.master_list[0])
 
             # If there is not enough of masters, and own ranking on the list
             # equals index, then become master
@@ -110,13 +110,11 @@ class Worker(threading.Thread):
                 #print("bcme slave")
                 self._become_a_slave()
 
-
-
         except:
             self._do_shutdown(sys.exc_info)
         return new_index
 
-    def _get_master_count(self, number_of_heartbeat_periods=1):
+    def _get_master_count(self, heartbeat_periods=1):
         """Listens to master heartbeat signals.
         Depending on of number of received signals, a decision is made on
         how to proceed:
@@ -133,7 +131,7 @@ class Worker(threading.Thread):
         self._ctx.master_list[:] = []
 
         # Sleep, count masters when awake, then all your base are belong to us.
-        time.sleep(number_of_heartbeat_periods * self._ctx.heartbeat_period)
+        time.sleep(heartbeat_periods * self._ctx.heartbeat_period)
         self._ctx.resource_lock.acquire()
         try:
             if self._ctx.this_node.role == "MASTER":
@@ -158,7 +156,7 @@ class Worker(threading.Thread):
             self._ctx.resource_lock.release()
         return ret
 
-    def assign_master(self, new_master):
+    def _assign_master(self, new_master):
         #global my_master, node_manager
         self._logger.info("Configuring node name %s as a SLAVE, master name is %s"
                           % (self._ctx.this_node.hostname, new_master.hostname))
@@ -169,30 +167,30 @@ class Worker(threading.Thread):
             self._ctx.RRD_HTTP_SERVER_PORT)
 
 
-'''
+
     # HM Node Checker algorithm functions
 
 
-    def become_a_master(self):
+    def _become_a_master(self):
         """Triggers actions needed to prepare the node for running
         in MASTER role. Runs the master loop.
         """
-        global delayed_dead_node_timer, node_manager
+        #global delayed_dead_node_timer, node_manager
 
-        if this_node.role != "MASTER":
-            this_node.role = "MASTER"
-            logger.info("This node became a MASTER")
-            delayed_dead_node_timer = threading.Timer(dead_node_timeout,
-                                                      start_dead_node_scan_timer)
-            delayed_dead_node_timer.start()
-            send_heartbeats()
-            node_manager.configure_node_as_master(this_node.ip_address)
-            util.store_list_to_file(active_node_list, active_node_list_file,
-                                    this_node.group_name)
-        master_loop()
+        if self._ctx.this_node.role != "MASTER":
+            self._ctx.this_node.role = "MASTER"
+            self.logger.info("This node became a MASTER")
+            self._ctx.delayed_dead_node_timer = threading.Timer(self._ctx.dead_node_timeout,
+                                                      self._start_dead_node_scan_timer)
+            self._ctx.delayed_dead_node_timer.start()
+            self._send_heartbeats()
+            nself._ctx.ode_manager.configure_node_as_master(self._ctx.this_node.ip_address)
+            util.store_list_to_file(self._ctx.active_node_list, self._ctx.active_node_list_file,
+                                    self._ctx.this_node.group_name)
+        self._master_loop()
 
 
-    def become_a_slave(self):
+    def _become_a_slave(self):
         global this_node
         global node_list
         logger.info("Trying to become a SLAVE")
@@ -270,7 +268,7 @@ class Worker(threading.Thread):
             except:
                 shutdown(sys.exc_info())
 
-
+'''
     def wait_for_machine_configured(self, file_reader):
         """In case of nosql and bigdata CMT is changing hostname, wait for that
            action being complete"""

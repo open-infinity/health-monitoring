@@ -76,8 +76,43 @@ def test_master_election_become_slave():
     worker._master_election(0)
     master = worker._become_a_slave.assert_called_once_with()
 
+def test_get_master_count_role_master_and_0_master_hbs_received():
+    global conf, resource_lock, ctx
+    print ("enter test_udp_listener_master_election")
 
+    ctx.active_node_list = [ctx.this_node]  
+    ctx.heartbeat_period = 1
+    ctx.this_node.role = "MASTER"
+  
+    worker = nodechecker.worker.Worker(ctx)
+    
+    udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
+    udp_listener.run = MagicMock()
+    udp_listener.shutdown = MagicMock()
+    worker._udp_listener = udp_listener
+    
+    res = worker._get_master_count(1)
+    
+    assert res == "FINE"
+   
+def test_get_master_count_role_slave_and_0_master_hbs_received():
+    global conf, resource_lock, ctx
+    print ("enter test_udp_listener_master_election")
 
+    ctx.active_node_list = [ctx.this_node]  
+    ctx.heartbeat_period = 1
+    ctx.this_node.role = "SLAVE"
+  
+    worker = nodechecker.worker.Worker(ctx)
+    
+    udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
+    udp_listener.run = MagicMock()
+    udp_listener.shutdown = MagicMock()
+    worker._udp_listener = udp_listener
+    
+    res = worker._get_master_count(1)
+    
+    assert res == "TOO_LOW"   
 
 
 

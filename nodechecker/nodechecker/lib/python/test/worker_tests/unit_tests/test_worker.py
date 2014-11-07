@@ -21,33 +21,19 @@ def setup():
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
     resource_lock = threading.RLock()
-    ctx = nodechecker.context.Context()
     this_node = nodechecker.node.Node()
+    ctx = nodechecker.context.Context()
     ctx.this_node = this_node
+    ctx.resource_lock = resource_lock
 
-''' to itegration tets
-def test_start_stop():
-    print("ENTER test_start_stop()")
-    global conf, resource_lock, ctx
 
-    worker = nodechecker.worker.Worker(ctx, resource_lock)
-    assert worker.isAlive() is False
-
-    worker.start()
-    assert worker.isAlive() is True
-
-    worker.shutdown()
-    #time.sleep(5)
-    #assert worker.isAlive() is False
-    print("ENTER test_start_stop()")
-'''
 
 def test_master_election_become_master():
     global conf, resource_lock, ctx
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]    
-    worker = nodechecker.worker.Worker(ctx, resource_lock)
+    worker = nodechecker.worker.Worker(ctx)
     
     udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
     udp_listener.run = MagicMock()
@@ -62,8 +48,9 @@ def test_master_election_become_master():
     
     print ("master_election")
 
-    worker.master_election()
-    master = worker._become_a_master.assert_called_once_with()
+    index = worker._master_election(0)
+    assert index == 0
+    worker._become_a_master.assert_called_once_with()
     
     
 def test_master_election_become_slave():
@@ -71,7 +58,7 @@ def test_master_election_become_slave():
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]    
-    worker = nodechecker.worker.Worker(ctx, resource_lock)
+    worker = nodechecker.worker.Worker(ctx)
     
     udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
     udp_listener.run = MagicMock()
@@ -86,19 +73,8 @@ def test_master_election_become_slave():
     
     print ("master_election")
 
-    worker.master_election()
+    worker._master_election(0)
     master = worker._become_a_slave.assert_called_once_with()
-    
-    
-    
-    
-
-    
-
-    
-    
-
-    
 
 
 

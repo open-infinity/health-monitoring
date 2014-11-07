@@ -24,22 +24,9 @@ def setup():
 
 '''
 def test_start_stop():
-    global conf, resource_lock, ctx
-    this_node = nodechecker.node.Node()
-    ctx.this_node = this_node
-
-    udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
-    assert udp_listener.isAlive() is False
-
-    udp_listener.start()
-    assert udp_listener.isAlive() is True
-
-    time.sleep(1)
-    print("awake, shutting down udp_listener")
-    udp_listener.shutdown()
-    #assert udp_listener.isAlive() is False
+    pass
+    #TODO:to be implemented once the structure of raw data is visible
 '''
-
 
 
 

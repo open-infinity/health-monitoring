@@ -39,7 +39,7 @@ def teardown_module():
     pass
 
 
-def test_start_and_become_master():
+def est_start_and_become_master():
     global node_manager, conf
     print('enter test_start()')
     #self.node_manager.configure_node_as_slave(1, 2)
@@ -55,6 +55,6 @@ def test_start_and_become_master():
     #nodechecker.nodechecker.start(conf, node_manager)
 
 
-def test_start_and_become_slave():
+def est_start_and_become_slave():
     print('enter test_start_2()')
     assert True

@@ -22,18 +22,18 @@ import functools
 import reader
 import util
 import node
+import thread
 import udp_listener
 
 
 class Worker(threading.Thread):
-    def __init__(self, a_context, a_lock):
+    def __init__(self, a_context):
         threading.Thread.__init__(self)
         self._logger = logging.getLogger('nodechecker.loop')
-        self._ctx= a_context
-        self._lock = a_lock
+        self._ctx = a_context
         self._continue = True
         self._udp_listener = udp_listener.UDPSocketListener(self._ctx)
-        #self._udp_listener = udp_listener.UDPSocketListener(this_node,
+        # self._udp_listener = udp_listener.UDPSocketListener(this_node,
         #                                                     heartbeats_received,
         #                                                    master_list,
         #                                                     active_node_list,
@@ -42,79 +42,84 @@ class Worker(threading.Thread):
     def run(self):
         self._udp_listener.start()
         self._loop_forever()
-        self._do_shutdown()
+        # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Worker.run() ')
 
     def shutdown(self):
         self._continue = False
 
     def _loop_forever(self):
+        index = 0
         while self._continue:
-            self._master_election()
-        self._do_shutdown()    
-        print('wake up')
+            index = self._master_election(index)
+
+        self._do_shutdown()
+        # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Worker._loop_forever() ')
 
     def _do_shutdown(self, exc_info=None, exit_status=1, message="Shutting down"):
-    #def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
+        # print("Thread:" + str(thread.get_ident()) + ' ' + 'ENTER Worker._do_shutdown()')
+        #def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
         #nodechecker.util.log_message(message, exc_info)
         self._udp_listener.shutdown()
         # TODO: WARNING, the function moved
         self._cancel_timers()
         #sys.exit(exit_status)
-        print('do_shutdown_exit') 
-         
+        self._udp_listener.join()
+        #print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Worker._do_shutdown()')
+
     def _become_a_slave(self):
         pass
-    
+
     def _become_a_master(self):
         pass
-        
-    def _listen_to_master_heartbeats(self, arg):
-        pass
-        
+
+    #def _listen_to_master_heartbeats(self, arg):
+    #    pass
+
     def _cancel_timers(self):
-        pass    
-    
-    def master_election(self):
-        print('ENTER master_election')
-        index = 0
+        pass
+
+    def _master_election(self, index):
+        print('ENTER master_election()')
+        new_index = index
         try:
-            my_pos = self._ctx.active_node_list.index(self._ctx.this_node)
-            print("My position in the list:" + str(my_pos) + " index:" + str(index))
-            
+            my_pos = self._ctx.active_node_list.index(
+                self._ctx.this_node)
+            # print("My position in the list:" + str(my_pos) + " index:" + str(index))
+
             #logger.debug("My position in the list is %d, a = %d" % (my_pos, index))
-            if self._listen_to_master_heartbeats(1) == "TOO_LOW": 
-               print ("too low") 
-               if index == my_pos:
-                   print("becme master")
-                   self._become_a_master()
-               index = (index + 1) % len(self._ctx.active_node_list)
-               print("index:" + str(index))
+            if self._listen_to_master_heartbeats(1) == "TOO_LOW":
+                #print ("too low")
+                if index == my_pos:
+                    #print("becme master")
+                    self._become_a_master()
+                new_index = (index + 1) % len(self._ctx.active_node_list)
+                #print("index:" + str(index))
             else:
-                print("bcme slave")
+                #print("bcme slave")
                 self._become_a_slave()
         except:
-            self._do_shutdown(sys.exc_info)    
-        
+            self._do_shutdown(sys.exc_info)
+        return new_index
+
         # a = 0
         # while True:
         # time.sleep(2)
-        #    print('wake up')
+        # print('wake up')
 
-# try:
-#
-# my_pos = active_node_list.index(this_node)
-# logger.debug("My position in the list is %d, a = %d" % (my_pos, a))
-#                if listen_to_master_heartbeats(1) == "TOO_LOW":
-#                   if a == my_pos:
-#                       self.become_a_master()
-#                    a = (a + 1) % len(active_node_list)
-#                else:
-#                    self.become_a_slave()
-#            except:
-#                shutdown(sys.exc_info)
+    # try:
+    #
+    # my_pos = active_node_list.index(this_node)
+    # logger.debug("My position in the list is %d, a = %d" % (my_pos, a))
+    # if listen_to_master_heartbeats(1) == "TOO_LOW":
+    #                   if a == my_pos:
+    #                       self.become_a_master()
+    #                    a = (a + 1) % len(active_node_list)
+    #                else:
+    #                    self.become_a_slave()
+    #            except:
+    #                shutdown(sys.exc_info)
 
-'''
-    def listen_to_master_heartbeats(self, number_of_heartbeat_periods):
+    def _listen_to_master_heartbeats(self, number_of_heartbeat_periods):
         """Listens to master heartbeat signals.
         Depending on of number of received signals, a decision is made on
         how to proceed:
@@ -123,47 +128,47 @@ class Worker(threading.Thread):
             - In case of too big number of signals, if the node is a slave, it
             checks if it should itself run as a slave.
         """
-        global heartbeats_received
-        global master_list
+        #global heartbeats_received
+        #global master_list
 
         ret = "FINE"
-        heartbeats_received = 0
-        master_list[:] = []
+        self._ctx.heartbeats_received = 0
+        self._ctx.master_list[:] = []
 
         # Sleep, count masters when awake, then all your base are belong to us.
-        time.sleep(number_of_heartbeat_periods * heartbeat_period)
-        lock_resources.acquire()
+        time.sleep(number_of_heartbeat_periods * self._ctx.heartbeat_period)
+        self._ctx.resource_lock.acquire()
         try:
-            if this_node.role == "MASTER":
+            if self._ctx.this_node.role == "MASTER":
                 expected_masters = 0
             else:
                 expected_masters = 1
 
-            if (len(master_list) < expected_masters):
+            if len(self._ctx.master_list) < expected_masters:
                 ret = "TOO_LOW"
-            elif (len(master_list) > expected_masters):
+            elif len(self._ctx.master_list) > expected_masters:
                 ret = "TOO_HIGH"
-            if this_node.role == "SLAVE" and master_list:
-                if my_master not in master_list:
-                    assign_master(master_list[0])
+            if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
+                if self._ctx.my_master not in self._ctx.master_list:
+                    self.assign_master(self._ctx.master_list[0])
         except:
             util.log_exception(sys.exc_info())
         finally:
-            lock_resources.release()
+            self._ctx.resource_lock.release()
         return ret
 
-
     def assign_master(self, new_master):
-        global my_master, node_manager
-        logger.info("Configuring node name %s as a SLAVE, master name is %s"
-                    % (this_node.hostname, new_master.hostname))
-        my_master = new_master
-        node_manager.configure_node_as_slave(this_node.ip_address,
-                                            RRD_HTTP_SERVER_PORT,
-                                            my_master.ip_address,
-                                            RRD_HTTP_SERVER_PORT)
+        #global my_master, node_manager
+        self._logger.info("Configuring node name %s as a SLAVE, master name is %s"
+                          % (self._ctx.this_node.hostname, new_master.hostname))
+        self._ctx.my_master = new_master
+        self._ctx.node_manager.configure_node_as_slave(
+            self._ctx.this_node.ip_address, self._ctx.RRD_HTTP_SERVER_PORT,
+            self._ctx.my_master.ip_address,
+            self._ctx.RRD_HTTP_SERVER_PORT)
 
 
+'''
     # HM Node Checker algorithm functions
 
 

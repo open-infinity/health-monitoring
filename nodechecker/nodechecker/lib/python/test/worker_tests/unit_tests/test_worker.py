@@ -74,9 +74,10 @@ def test_master_election_become_slave():
     print ("master_election")
 
     worker._master_election(0)
-    master = worker._become_a_slave.assert_called_once_with()
+    worker._become_a_slave.assert_called_once_with()
 
-def test_get_master_count_role_master_and_0_master_hbs_received():
+
+def test_get_master_count_with_role_master_and_0_master_hbs_received():
     global conf, resource_lock, ctx
     print ("enter test_udp_listener_master_election")
 
@@ -94,8 +95,9 @@ def test_get_master_count_role_master_and_0_master_hbs_received():
     res = worker._get_master_count(1)
     
     assert res == "FINE"
-   
-def test_get_master_count_role_slave_and_0_master_hbs_received():
+
+
+def test_get_master_count_with_role_slave_and_0_master_hbs_received():
     global conf, resource_lock, ctx
     print ("enter test_udp_listener_master_election")
 

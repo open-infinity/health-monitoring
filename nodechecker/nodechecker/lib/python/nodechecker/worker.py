@@ -34,8 +34,8 @@ class Worker(threading.Thread):
         self._continue = True
         self._udp_listener = udp_listener.UDPSocketListener(self._ctx)
         # self._udp_listener = udp_listener.UDPSocketListener(this_node,
-        #                                                     heartbeats_received,
-        #                                                    master_list,
+        # heartbeats_received,
+        # master_list,
         #                                                     active_node_list,
         #                                                     lock_resources)
 
@@ -57,8 +57,8 @@ class Worker(threading.Thread):
 
     def _do_shutdown(self, exc_info=None, exit_status=1, message="Shutting down"):
         # print("Thread:" + str(thread.get_ident()) + ' ' + 'ENTER Worker._do_shutdown()')
-        #def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
-        #nodechecker.util.log_message(message, exc_info)
+        # def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
+        # nodechecker.util.log_message(message, exc_info)
         self._udp_listener.shutdown()
         # TODO: WARNING, the function moved
         self._cancel_timers()
@@ -66,8 +66,8 @@ class Worker(threading.Thread):
         self._udp_listener.join()
         #print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Worker._do_shutdown()')
 
-    #def _become_a_slave(self):
-    #    pass
+    # def _become_a_slave(self):
+    # pass
 
     #def _become_a_master(self):
     #    pass
@@ -146,9 +146,9 @@ class Worker(threading.Thread):
             else:
                 ret = "FINE"
 
-            #if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
-            #    if self._ctx.my_master not in self._ctx.master_list:
-            #        self.assign_master(self._ctx.master_list[0])
+                #if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
+                #    if self._ctx.my_master not in self._ctx.master_list:
+                #        self.assign_master(self._ctx.master_list[0])
 
         except:
             util.log_exception(sys.exc_info())
@@ -166,11 +166,6 @@ class Worker(threading.Thread):
             self._ctx.my_master.ip_address,
             self._ctx.RRD_HTTP_SERVER_PORT)
 
-
-
-    # HM Node Checker algorithm functions
-
-
     def _become_a_master(self):
         """Triggers actions needed to prepare the node for running
         in MASTER role. Runs the master loop.
@@ -181,156 +176,146 @@ class Worker(threading.Thread):
             self._ctx.this_node.role = "MASTER"
             self.logger.info("This node became a MASTER")
             self._ctx.delayed_dead_node_timer = threading.Timer(self._ctx.dead_node_timeout,
-                                                      self._start_dead_node_scan_timer)
+                                                                self._start_dead_node_scan_timer)
             self._ctx.delayed_dead_node_timer.start()
             self._send_heartbeats()
-            nself._ctx.ode_manager.configure_node_as_master(self._ctx.this_node.ip_address)
+            self._ctx.node_manager.configure_node_as_master(self._ctx.this_node.ip_address)
             util.store_list_to_file(self._ctx.active_node_list, self._ctx.active_node_list_file,
                                     self._ctx.this_node.group_name)
         self._master_loop()
 
-
     def _become_a_slave(self):
-        global this_node
-        global node_list
-        logger.info("Trying to become a SLAVE")
-        if this_node.role == "MASTER":
-            cancel_timers()
-            this_node.role = "SLAVE"
-            if master_list:
-                assign_master(master_list[0])
+        #global this_node
+        #global node_list
+        self.logger.info("Trying to become a SLAVE")
+        if self._ctx.this_node.role == "MASTER":
+            self._cancel_timers()
+            self._ctx.this_node.role = "SLAVE"
+            if self._ctx.master_list:
+                self._assign_master(self._ctx.master_list[0])
             else:
-                shutdown(None, 1, "Unable to set a master for the node")
-        slave_loop(node_list)
+                self._do_shutdown(None, 1, "Unable to set a master for the node")
+        self._slave_loop(self._ctx.node_list)
 
-
-    def continue_as_master(self):
+    def _continue_as_master(self):
         """Returns True if a node should continue in master role"""
         try:
             ret = True
-            my_pos = active_node_list.index(this_node)
-            for m in master_list:
-                master_pos = active_node_list.index(m)
+            my_pos = self._ctx.active_node_list.index(self._ctx.this_node)
+            for m in self._ctx.master_list:
+                master_pos = self._ctx.active_node_list.index(m)
                 if master_pos < my_pos:
                     ret = False
                     break
-            logger.info("Continuing as master: %s" % str(ret))
+            self.logger.info("Continuing as master: %s" % str(ret))
         except ValueError:
-            logger.debug("Active node list: %s" % active_node_list)
-            logger.debug("Master list: %s" % master_list)
-            logger.debug("Master: %s" % m)
+            self.logger.debug("Active node list: %s" % active_node_list)
+            self.logger.debug("Master list: %s" % self._ctx.master_list)
+            self.logger.debug("Master: %s" % m)
             util.log_exception(sys.exc_info())
         return ret
 
-
-
-
-
-    def master_loop(self):
-        global node_list
-        global active_node_list
-        global dead_node_set
-        logger.info("Master Loop start")
+    def _master_loop(self):
+        #global node_list
+        #global active_node_list
+        #global dead_node_set
+        self.logger.info("Master Loop start")
         while True:
             # 1) Check number of masters
-            if listen_to_master_heartbeats(1) == "TOO_HIGH":
-                if not continue_as_master():
+            if self._listen_to_master_heartbeats(1) == "TOO_HIGH":
+                if not self._continue_as_master():
                     break
 
             # 2) Read node list file, update own node collections if needed
-            lock_resources.acquire()
-            node_list_changed = update_node_collections(node_list)[0]
+            self._ctx.lock_resources.acquire()
+            node_list_changed = self._update_node_collections(self._ctx.node_list)[0]
 
             # 3) Process notifications
             #mail_sender.send_notifications(ntf_reader.get_notifications(node_list))
-            ntf_manager.process_notifications(ntf_reader.get_notifications(node_list))
+            self._ctx.ntf_manager.process_notifications(self._ctx.ntf_reader.get_notifications(self._ctx.node_list))
 
             # 4) Send and store changes
             if node_list_changed:
-                send(active_node_list, util.json_from_list(active_node_list,
-                                                           'active_node_list'))
-                util.store_list_to_file(active_node_list, active_node_list_file,
-                                        this_node.group_name)
+                self._send(active_node_list, util.json_from_list(active_node_list,
+                                                                 'active_node_list'))
+                util.store_list_to_file(active_node_list, self._ctx.active_node_list_file,
+                                        self._ctx.this_node.group_name)
             # 5) release lock
-            lock_resources.release()
+            self._lock_resources.release()
 
         # Can not continue as master
-        become_a_slave()
+        self._become_a_slave()
 
-
-    def slave_loop(self, a_node_list):
-        logger.info("Slave Loop start")
+    def _slave_loop(self, a_node_list):
+        self.logger.info("Slave Loop start")
         while True:
             try:
-                update_node_collections(a_node_list)
-                if listen_to_master_heartbeats(2) == "TOO_LOW":
+                self.update_node_collections(a_node_list)
+                if self._listen_to_master_heartbeats(2) == "TOO_LOW":
                     break
             except:
-                shutdown(sys.exc_info())
+                self._do_shutdown(sys.exc_info())
 
-'''
-    def wait_for_machine_configured(self, file_reader):
+    def _wait_for_machine_configured(self, file_reader):
         """In case of nosql and bigdata CMT is changing hostname, wait for that
            action being complete"""
 
         total_sleep_time = 0
         wait_for_conf = False
-        for n in node_list:
+        for n in self._ctx.node_list:
             machine_type = file_reader.get_attribute(n.ip_address, 'MACHINE_TYPE')
             if machine_type == 'manager':
                 wait_for_conf = True
                 break
         if wait_for_conf:
             while True:
-                if util.get_hostname() != this_node.hostname:
-                    logger.debug("Sleep")
-                    total_sleep_time += CMT_CONF_WAIT
-                    if total_sleep_time >= MAX_CMT_CONF_WAIT:
-                        shutdown(None, 1, "This is boring, bye.")
-                    time.sleep(CMT_CONF_WAIT)
+                if util.get_hostname() != self._ctx.this_node.hostname:
+                    self.logger.debug("Sleep")
+                    total_sleep_time += self._ctx.CMT_CONF_WAIT
+                    if total_sleep_time >= self._ctx.MAX_CMT_CONF_WAIT:
+                        self._do_shutdown(None, 1, "This is boring, bye.")
+                    time.sleep(self._ctx.CMT_CONF_WAIT)
                 else:
                     # sleep once more before the exit: to make sure that hostname
                     # change propagated
-                    time.sleep(CMT_CONF_WAIT)
+                    time.sleep(self._ctx.CMT_CONF_WAIT)
                     break
+
     # HM Nodechecker feature functions
-    def send(self, to_nodes, data):
+    def _send(self, to_nodes, data):
         try:
             if len(to_nodes) > 0:
-                logger.debug("Sending data %s" % str(data))
+                self.logger.debug("Sending data %s" % str(data))
                 for n in to_nodes:
-                    if n != this_node:
-                        logger.debug("Sending to node %s" % str(n.ip_address))
+                    if n != self._ctx.this_node:
+                        self.logger.debug("Sending to node %s" % str(n.ip_address))
                         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         sock.sendto(data, (n.ip_address, n.port))
             else:
-                shutdown(None, 1, "No nodes to send data")
+                self._do_shutdown()(None, 1, "No nodes to send data")
         except:
             util.log_exception(sys.exc_info())
 
-
-    def send_heartbeats(self):
+    def _send_heartbeats(self):
         global heartbeat_timer
-        lock_resources.acquire()
+        self._ctx.lock_resources.acquire()
         try:
-            send(node_list, this_node.to_json())
-            heartbeat_timer = threading.Timer(heartbeat_period, send_heartbeats)
+            self._send(self._ctx.node_list, self._ctx.this_node.to_json())
+            heartbeat_timer = threading.Timer(self._ctx.heartbeat_period, send_heartbeats)
             heartbeat_timer.start()
         except:
             util.log_exception(sys.exc_info())
         finally:
             lock_resources.release()
 
-
-    def start_dead_node_scan_timer(self):
+    def _start_dead_node_scan_timer(self):
         global dead_node_timer
         dead_node_scan()
         dead_node_timer = threading.Timer(
             rrd_scan_period, start_dead_node_scan_timer)
         dead_node_timer.start()
 
-
-    def cancel_timers(self):
+    def _cancel_timers(self):
         global heartbeat_timer
         global dead_node_timer
         global delayed_dead_node_timer
@@ -342,8 +327,8 @@ class Worker(threading.Thread):
         if delayed_dead_node_timer:
             delayed_dead_node_timer.cancel()
 
-
-    def find_minimal_rrd_timestamp(self, arg, dirname, names):
+    #TODO...
+    def _find_minimal_rrd_timestamp(self, arg, dirname, names):
         global min_time_diff
         for name in names:
             filename = os.path.join(dirname, name)
@@ -360,7 +345,7 @@ class Worker(threading.Thread):
                     pass
 
 
-    def check_node_still_dead(self, node_to_check):
+    def _check_node_still_dead(self, node_to_check):
         global active_node_list
         global new_dead_node_set
         global dead_node_set
@@ -391,7 +376,7 @@ class Worker(threading.Thread):
             lock_resources.release()
 
 
-    def process_node_resurrection(self, resurrected_node, active_nodes, dead_nodes):
+    def _process_node_resurrection(self, resurrected_node, active_nodes, dead_nodes):
         if resurrected_node in node_list:
             active_nodes.append(resurrected_node)
             dead_nodes.remove(resurrected_node.ip_address)
@@ -400,7 +385,7 @@ class Worker(threading.Thread):
             return False
 
 
-    def dead_node_scan(self):
+    def _dead_node_scan(self):
         global min_time_diff
         global new_dead_node_set
         global delayed_dead_node_timer
@@ -445,7 +430,7 @@ class Worker(threading.Thread):
 
                 except os.error:
                     # TODO: don't use exceptions for program flow
-                        found_new_dead_node = True
+                    found_new_dead_node = True
 
                 except:
                     shutdown(sys.exc_info())
@@ -493,10 +478,7 @@ class Worker(threading.Thread):
         return dead_node_list
 
 
-    
-
-
-    def update_node_collections(self, a_node_list):
+    def _update_node_collections(self, a_node_list):
         """Read a_node_list, and update active_node_list and dead_node_list,
         if needed"""
 
@@ -530,9 +512,9 @@ class Worker(threading.Thread):
         return active_nodes_changed, a_node_list
 
 
-    def set_master(self):
+    def _set_master(self):
         if not node_list:
             shutdown(None, 1, "Unable to set a master for the node")
-        assign_master(node_list[0])
-'''
+        _assign_master(node_list[0])
+
 

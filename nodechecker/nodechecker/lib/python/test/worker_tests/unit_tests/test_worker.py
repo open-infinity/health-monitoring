@@ -82,7 +82,7 @@ def test_get_master_count_with_role_master_and_0_master_hbs_received():
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]  
-    ctx.heartbeat_period = 1
+    ctx.heartbeat_period = 0
     ctx.this_node.role = "MASTER"
   
     worker = nodechecker.worker.Worker(ctx)
@@ -102,7 +102,7 @@ def test_get_master_count_with_role_slave_and_0_master_hbs_received():
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]  
-    ctx.heartbeat_period = 1
+    ctx.heartbeat_period = 0
     ctx.this_node.role = "SLAVE"
   
     worker = nodechecker.worker.Worker(ctx)
@@ -115,6 +115,27 @@ def test_get_master_count_with_role_slave_and_0_master_hbs_received():
     res = worker._get_master_count(1)
     
     assert res == "TOO_LOW"   
+
+
+def test_send_heartbeats_with_cancel():
+    worker = nodechecker.worker.Worker(ctx)
+    worker._send = MagicMock()
+    ctx.heartbeat_period = 0.001
+    worker._send_heartbeats()
+    time.sleep(0.003)
+    worker._cancel_timers()
+    assert worker._send.call_count == 3
+
+
+def test_start_dead_node_scan_timer_with_cancel():
+    worker = nodechecker.worker.Worker(ctx)
+    worker._dead_node_scan = MagicMock()
+    ctx.rrd_scan_period = 0.001
+    worker._start_dead_node_scan_timer()
+    time.sleep(0.003)
+    worker._cancel_timers()
+    assert worker._dead_node_scan.call_count == 3
+
 
 
 

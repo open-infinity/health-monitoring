@@ -31,7 +31,7 @@ class Node(object):
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.ip_address == other.ip_address
+            return self.ip_address == other.ip_address and self.port == other.port
         else:
             return False
 
@@ -39,11 +39,11 @@ class Node(object):
         return not self.__eq__(other)
 
     def __lt__(self, other):
-        return self.ip_address < other.ip_address or self.port < other.port
+        return self.ip_address < other.ip_address 
 
     def __hash__(self):
         h = hashlib.md5()
-        h.update(self.ip_address)
+        h.update(self.ip_address + str(self.port))
         a = h.hexdigest()
         return int(a, 16)
 

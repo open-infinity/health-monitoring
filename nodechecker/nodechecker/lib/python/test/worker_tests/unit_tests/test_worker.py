@@ -124,7 +124,7 @@ def test_send_heartbeats_with_cancel():
     worker._send_heartbeats()
     time.sleep(0.003)
     worker._cancel_timers()
-    assert worker._send.call_count == 3
+    assert worker._send.call_count > 1
 
 
 def test_start_dead_node_scan_timer_with_cancel():
@@ -134,7 +134,7 @@ def test_start_dead_node_scan_timer_with_cancel():
     worker._start_dead_node_scan_timer()
     time.sleep(0.003)
     worker._cancel_timers()
-    assert worker._dead_node_scan.call_count == 3
+    assert worker._dead_node_scan.call_count > 1
 
 
 

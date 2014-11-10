@@ -276,17 +276,25 @@ class Worker(threading.Thread):
 
     # HM Nodechecker feature functions
     def _send(self, to_nodes, data):
+        print("ENTER _send()")
         try:
             if len(to_nodes) > 0:
-                self.logger.debug("Sending data %s" % str(data))
+                self._logger.debug("Sending data %s" % str(data))
+                print("Sending data:"  + str(data))
+
                 for n in to_nodes:
                     if n != self._ctx.this_node:
-                        self.logger.debug("Sending to node %s" % str(n.ip_address))
+                        self._logger.debug("Sending to node %s" % str(n.ip_address))
+                        print("Sending to node:" + str(n.ip_address))
+                        print("Sending to port:" + str(n.port))
+                        
+
                         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         sock.sendto(data, (n.ip_address, n.port))
             else:
                 self._do_shutdown()(None, 1, "No nodes to send data")
         except:
+            print(sys.exc_info())
             util.log_exception(sys.exc_info())
 
     def _send_heartbeats(self):

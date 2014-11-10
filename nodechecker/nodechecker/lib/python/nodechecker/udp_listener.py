@@ -81,7 +81,7 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
     """
 
     def handle(self):
-        self._server.ctx.resource_lock.acquire()
+        self.server.ctx.resource_lock.acquire()
         try:
             data = self.request[0].strip()
             json_object = json.loads(data)
@@ -89,33 +89,40 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
             # Received heartbeat signal
             if json_object[0] == "node":
                 self.handle_heartbeat(json_object)
+                
             # Received active_node_list. Should be sent only to slaves
             elif json_object[0] == "active_node_list" and self._server.ctx.this_node.role == "SLAVE":
+                print("recv act nl")
                 self.handle_list(json_object)
+                
             else:
+                print("unexp")
                 self._server.logger.warn("Received unexpected data")
         except (TypeError, RuntimeError):
             util.log_exception(sys.exc_info())
         finally:
-            self._server.ctx.resource_lock.release()
+            self.server.ctx.resource_lock.release()
 
     def handle_heartbeat(self, json_object):
-        self._server.logger.debug("Received Heartbeat")
+        print ("ENTER handle_heartbeat")
+        self.server.logger.debug("Received Heartbeat")
         rx_node = node.Node().from_dict(json_object[1])
-        if rx_node != self._server.ctx.this_node:
-            self._server.ctx.heartbeats_received += 1
-            if rx_node not in self._server.ctx.master_list:
-                self._server.ctx.master_list.append(rx_node)
-                self._server.logger.debug("Added a master to the master_list")
-            self._server.logger.debug("Received master %s, master list is having size:%d" %
-                                     (rx_node.hostname, len(self._server.ctx.master_list)))
-            for m in self._server.master_list:
-                self._server.logger.debug("name = %s" % m.hostname)
+        if rx_node != self.server.ctx.this_node:
+            print("2")
+            self.server.ctx.heartbeats_received += 1
+            if rx_node not in self.server.ctx.master_list:
+                self.server.ctx.master_list.append(rx_node)
+                self.server.logger.debug("Added a master to the master_list")
+            self.server.logger.debug("Received master %s, master list is having size:%d" %
+                                     (rx_node.hostname, len(self.server.ctx.master_list)))
+            for m in self.server.ctx.master_list:
+                self.server.logger.debug("name = %s" % m.hostname)
         else:
-            self._server.logger.debug("Received heartbeat from myself")
+            print("3")
+            self.server.logger.debug("Received heartbeat from myself")
 
     def handle_active_node_list(self, json_object):
-        self._server.logger.debug("Received new active_node_list")
-        self._server.ctx.active_node_list[:] = node.node_list_from_dict_list(json_object[1])
-        self._server.logger.debug("New active list is ")
-        self._server.logger.debug(self._server.ctx.active_node_list)
+        self.server.logger.debug("Received new active_node_list")
+        self.server.ctx.active_node_list[:] = node.node_list_from_dict_list(json_object[1])
+        self.server.logger.debug("New active list is ")
+        self.server.logger.debug(self._server.ctx.active_node_list)

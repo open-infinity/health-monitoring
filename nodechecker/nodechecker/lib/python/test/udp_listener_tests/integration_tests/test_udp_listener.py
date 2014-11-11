@@ -3,7 +3,7 @@ import inspect
 import threading
 import nodechecker.config
 import nodechecker.node
-import nodechecker.worker
+import nodechecker.manager
 import time
 import nodechecker.context
 import nodechecker.udp_listener

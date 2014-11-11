@@ -16,7 +16,6 @@ class Context(object):
     master_list = []
 
     # Runtime classes
-    heartbeat_timer = None
     udp_listener = None
     ntf_reader = None
     nodelist_reader = None
@@ -24,8 +23,9 @@ class Context(object):
     node_manager = None
     conf = None
     this_node = None
-    dead_node_timer = None
-    delayed_dead_node_timer = None
+    timer_dead_node = None
+    timer_delayed_dead_node = None
+    timer_heartbeat = None
     logger = None
     resource_lock = None
 

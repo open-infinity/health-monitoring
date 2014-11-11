@@ -106,15 +106,15 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
     def handle_heartbeat(self, json_object):
         print ("ENTER handle_heartbeat")
         self.server.logger.debug("Received Heartbeat")
-        rx_node = node.Node().from_dict(json_object[1])
-        if rx_node != self.server.ctx.this_node:
+        tx_node = node.Node().from_dict(json_object[1])
+        if tx_node != self.server.ctx.this_node:
             print("2")
             self.server.ctx.heartbeats_received += 1
-            if rx_node not in self.server.ctx.master_list:
-                self.server.ctx.master_list.append(rx_node)
+            if tx_node not in self.server.ctx.master_list:
+                self.server.ctx.master_list.append(tx_node)
                 self.server.logger.debug("Added a master to the master_list")
             self.server.logger.debug("Received master %s, master list is having size:%d" %
-                                     (rx_node.hostname, len(self.server.ctx.master_list)))
+                                     (tx_node.hostname, len(self.server.ctx.master_list)))
             for m in self.server.ctx.master_list:
                 self.server.logger.debug("name = %s" % m.hostname)
         else:

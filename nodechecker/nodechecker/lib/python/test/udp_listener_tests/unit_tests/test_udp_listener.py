@@ -3,8 +3,6 @@ import inspect
 import threading
 import nodechecker.config
 import nodechecker.node
-import nodechecker.worker
-import time
 import nodechecker.context
 import nodechecker.udp_listener
 import nodechecker.node

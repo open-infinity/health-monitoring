@@ -17,7 +17,7 @@ import time
 import config
 import notification.parser
 import notification.manager
-import reader
+import filereader
 import util
 import node
 import context
@@ -207,7 +207,7 @@ def wait_for_machine_configured(file_reader):
     total_sleep_time = 0
     wait_for_conf = False
     for n in node_list:
-        machine_type = file_reader.get_attribute(n.ip_address, 'MACHINE_TYPE')
+        machine_type = file_reader.read_attribute(n.ip_address, 'MACHINE_TYPE')
         if machine_type == 'manager':
             wait_for_conf = True
             break
@@ -231,7 +231,7 @@ def update_node_collections(a_node_list):
     if needed"""
 
     try:
-        a_node_list[:] = nodelist_reader.get_node_list(this_node, mode)
+        a_node_list[:] = nodelist_reader.read_node_list(this_node, mode)
 
         # Check if cluster scaled out, or just created
         nodes = [n for n in a_node_list if n not in active_node_list and
@@ -285,10 +285,10 @@ def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     this_node = node.Node()
     process_settings(settings, conf, this_node)
     configure_logger()
-    nodelist_reader = reader.Reader(node_list_file)
-    this_node.group_name = nodelist_reader.get_attribute(this_node.ip_address, 'GROUP_NAME')
-    this_node.machine_type = nodelist_reader.get_attribute(this_node.ip_address, 'MACHINE_TYPE')
-    this_node.hostname = nodelist_reader.get_attribute(this_node.ip_address, 'HOST_NAME')
+    nodelist_reader = filereader.FileReader(node_list_file)
+    this_node.group_name = nodelist_reader.read_attribute(this_node.ip_address, 'GROUP_NAME')
+    this_node.machine_type = nodelist_reader.read_attribute(this_node.ip_address, 'MACHINE_TYPE')
+    this_node.hostname = nodelist_reader.read_attribute(this_node.ip_address, 'HOST_NAME')
 
     # Construct remaining members
     lock_resources = threading.RLock()

@@ -14,7 +14,7 @@ import socket
 import threading
 import time
 import functools
-import timers
+import timer
 
 import util
 import udp_listener
@@ -27,11 +27,14 @@ class Manager(threading.Thread):
         self._ctx = a_context
         self._continue = True
         self._udp_listener = udp_listener.UDPSocketListener(self._ctx)
+        self._hb_sender = util.RepeatingTimer(self._ctx.heartbeat_period, util.send,
+                                              [self._ctx.node_list, self._ctx.this_node.to_json()])
+
         # self._udp_listener = udp_listener.UDPSocketListener(this_node,
         # heartbeats_received,
         # master_list,
         # active_node_list,
-        #                                                     resource_lock)
+        # resource_lock)
 
     def run(self):
         self._udp_listener.start()
@@ -55,22 +58,37 @@ class Manager(threading.Thread):
         # nodechecker.util.log_message(message, exc_info)
         self._udp_listener.shutdown()
         # TODO: WARNING, the function moved
-        timers.cancel(self._ctx)
+        timer.cancel(self._ctx)
         # sys.exit(exit_status)
         self._udp_listener.join()
-        #print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager._do_shutdown()')
+        # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager._do_shutdown()')
 
     # def _become_a_slave(self):
     # pass
 
     # def _become_a_master(self):
-    #    pass
+    # pass
 
     #def _listen_to_master_heartbeats(self, arg):
     #    pass
 
     #def _cancel_timers(self):
     #    pass
+
+    def _stop_workers(self):
+        print("ENTER _stop_workers")
+
+        if self._hb_sender:
+            print("_stop_workers")
+            self._hb_sender.cancel()
+
+
+            #if ctx.timer_dead_node:
+            #    print("_ctx.timer_dead_node.cancel()")
+            #    ctx.timer_dead_node.cancel()
+            #if ctx.timer_delayed_dead_node:
+            #    print("_ctx.timer_delayed_dead_node.cancel()")
+            #    ctx.timer_delayed_dead_node.cancel()
 
     def _master_election(self, index):
         print('ENTER master_election()')
@@ -172,9 +190,10 @@ class Manager(threading.Thread):
             #self._ctx.Thread = threading.Timer(self._ctx.dead_node_timeout,
             #                                                    self._start_dead_node_scan_timer)
             #self._ctx.Thread.start()
-            timers.timer_dead_node_scan_start(self._ctx)
-            timers.timer_heartbeat_start(self._ctx)
+            #worker.timer_dead_node_scan_start(self._ctx)
+            #worker.timer_heartbeat_start(self._ctx)
             #self._send_heartbeats()
+            self._hb_sender.start()
             self._ctx.node_manager.configure_node_as_master(self._ctx.this_node.ip_address)
             util.store_list_to_file(self._ctx.active_node_list, self._ctx.active_node_list_file,
                                     self._ctx.this_node.group_name)
@@ -185,8 +204,8 @@ class Manager(threading.Thread):
         #global node_list
         self.logger.info("Trying to become a SLAVE")
         if self._ctx.this_node.role == "MASTER":
-            #self._cancel_timers()
-            timers.cancel(self._ctx)
+            self._cancel_timers()
+            #worker.cancel(self._ctx)
             self._ctx.this_node.role = "SLAVE"
             if self._ctx.master_list:
                 self._assign_master(self._ctx.master_list[0])
@@ -233,8 +252,9 @@ class Manager(threading.Thread):
 
             # 4) Send and store changes
             if node_list_changed:
-                self._send(self._ctx.active_node_list, util.json_from_list(self._ctx.active_node_list,
-                                                                           'active_node_list'))
+                util.send(self._ctx.this_node,
+                          self._ctx.active_node_list,
+                          util.json_from_list(self._ctx.active_node_list, 'active_node_list'))
                 util.store_list_to_file(self._ctx.active_node_list, self._ctx.active_node_list_file,
                                         self._ctx.this_node.group_name)
             # 5) release lock
@@ -260,7 +280,7 @@ class Manager(threading.Thread):
         total_sleep_time = 0
         wait_for_conf = False
         for n in self._ctx.node_list:
-            machine_type = file_reader.get_attribute(n.ip_address, 'MACHINE_TYPE')
+            machine_type = file_reader.read_attribute(n.ip_address, 'MACHINE_TYPE')
             if machine_type == 'manager':
                 wait_for_conf = True
                 break
@@ -277,220 +297,13 @@ class Manager(threading.Thread):
                     # change propagated
                     time.sleep(self._ctx.CMT_CONF_WAIT)
                     break
-    '''
-    # HM Nodechecker feature functions
-    def _send(self, to_nodes, data):
-        print("ENTER _send()")
-        try:
-            if len(to_nodes) > 0:
-                self._logger.debug("Sending data %s" % str(data))
-                print("Sending data:"  + str(data))
-
-                for n in to_nodes:
-                    if n != self._ctx.this_node:
-                        self._logger.debug("Sending to node %s" % str(n.ip_address))
-                        print("Sending to node:" + str(n.ip_address))
-                        print("Sending to port:" + str(n.port))
-                        
-
-                        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                        sock.sendto(data, (n.ip_address, n.port))
-            else:
-                self._do_shutdown()(None, 1, "No nodes to send data")
-        except:
-            print(sys.exc_info())
-            util.log_exception(sys.exc_info())
-
-    def _send_heartbeats(self, ctx):
-        #global heartbeat_timer
-        self._ctx.resource_lock.acquire()
-        print("ENTER _send_heartbeats()")
-        try:
-            self._send(self._ctx.node_list, self._ctx.this_node.to_json())
-            self._ctx.heartbeat_timer = threading.Timer(self._ctx.heartbeat_period,
-                                                        self._send_heartbeats, (ctx,))
-            self._ctx.heartbeat_timer.start()
-        except:
-            util.log_exception(sys.exc_info())
-        finally:
-            self._ctx.resource_lock.release()
-    '''
-    '''
-    def _cancel_timers(self):
-        print("ENTER _cancel_timers")
-        #global heartbeat_timer
-        #global dead_node_timer
-        #global Thread
-
-        if self._ctx.heartbeat_timer:
-            print("_ctx.heartbeat_timer.cancel()")
-            self._ctx.heartbeat_timer.cancel()
-        if self._ctx.dead_node_timer:
-            print("_ctx.dead_node_timer.cancel()")
-            self._ctx.dead_node_timer.cancel()
-        if self._ctx.Thread:
-            print("_ctx.Thread.cancel()")
-            self._ctx.Thread.cancel()
-    '''
-    #TODO...
-    '''
-    def _find_minimal_rrd_timestamp(self, arg, dir_name, names):
-        #global min_time_diff
-        for name in names:
-            filename = os.path.join(dir_name, name)
-            if os.path.isfile(filename):
-                pipe = subprocess.Popen(
-                    ['rrdtool', 'last', filename], stdout=subprocess.PIPE)
-                out = pipe.communicate()
-                epoch = int(out[0])
-                if epoch > 0:
-                    diff = arg - epoch
-                    if self._ctx.min_time_diff > diff:
-                        self._ctx.min_time_diff = diff
-                else:
-                    pass
-    '''
-    '''
-    def _check_node_still_dead(self, node_to_check):
-        #global active_node_list
-        #global new_dead_node_set
-        #global dead_node_set
-        #global min_time_diff
-
-        now = time.mktime(time.localtime())
-        path = os.path.join(self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir,
-                            node_to_check.hostname)
-        self._ctx.resource_lock.acquire()
-        try:
-            self._ctx.min_time_diff = self._ctx.BIG_TIME_DIFF
-            os.path.walk(path, self._find_minimal_rrd_timestamp, now)
-            diff = self._ctx.min_time_diff
-            if diff < self._ctx.dead_node_timeout:
-                pass
-            else:
-                self._ctx.active_node_list.remove(node_to_check)
-                self._ctx.dead_node_set.add(node_to_check.ip_address)
-                self._ctx.send(self._ctx.node_list, util.json_from_list(
-                    self._ctx.active_node_list, 'active_node_list'))
-                self._ctx.ntf_manager.process_node_status_alerts([node_to_check], "DEAD_NODE")
-                util.store_list_to_file(
-                    self._ctx.active_node_list, self._ctx.active_node_list_file, self._ctx.this_node.group_name)
-            self._new_dead_node_set.remove(node_to_check.ip_address)
-        except:
-            util.log_exception(sys.exc_info())
-        finally:
-            self._ctx.resource_lock.release()
-    '''
-
-    '''
-    def _process_node_resurrection(self, resurrected_node, active_nodes, dead_nodes):
-        if resurrected_node in self._ctx.node_list:
-            active_nodes.append(resurrected_node)
-            dead_nodes.remove(resurrected_node.ip_address)
-            return True
-        else:
-            return False
-    '''
-    '''
-    def _dead_node_scan(self):
-        #global min_time_diff
-        #global new_dead_node_set
-        #global Thread
-
-        dead_node_list = []
-        resurrected_node_list = []
-
-        now = time.mktime(time.localtime())
-        self._ctx.resource_lock.acquire()
-        try:
-            for n in self._ctx.node_list:
-                if self._ctx.this_node.ip_address == n.ip_address:
-                    continue
-                found_new_dead_node = False
-                found_resurrected_node = False
-                path = os.path.join(self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, n.hostname)
-                known_as_dead = n.ip_address in self._ctx.dead_node_set
-                #FIXME: Nested try
-                try:
-                    self._ctx.min_time_diff = self._ctx.BIG_TIME_DIFF
-                    os.path.walk(path, self._find_minimal_rrd_timestamp, now)
-                    diff = self._ctx.min_time_diff
-
-                    if diff >= self._ctx.dead_node_timeout and not known_as_dead:
-                        self.logger.debug("Found dead node %s" % n.hostname)
-                        self.logger.debug(
-                            "n.hostname = %s,dead_node_set=%s," \
-                            " known_as_dead %s, diff = %s "
-                            % (n.hostname, self._ctx.dead_node_set, str(known_as_dead),
-                               diff))
-                        found_new_dead_node = True
-
-                    elif diff < self._ctx.dead_node_timeout and known_as_dead:
-                        self.logger.debug("Found node that resurrected from dead: %s"
-                                          % n.hostname)
-                        self.logger.debug(
-                            "n.hostname = %s,dead_node_set=%s,known_as_dead %s," \
-                            " diff = %s "
-                            % (n.hostname, self._ctx.dead_node_set, str(known_as_dead),
-                               diff))
-                        found_resurrected_node = True
-
-                except os.error:
-                    # TODO: don't use exceptions for program flow
-                    found_new_dead_node = True
-
-                except:
-                    self._do_shutdown(sys.exc_info())
-
-                finally:
-                    if found_new_dead_node:
-                        self.logger.debug("new_dead_node_set:: %s" % self._ctx.new_dead_node_set)
-                        if n.ip_address not in self._ctx.new_dead_node_set:
-                            self.logger.info("Starting timer for new dead node")
-                            self._ctx.new_dead_node_set.add(n.ip_address)
-                            Thread = threading.Timer(
-                                self._ctx.NODE_CREATION_TIMEOUT,
-                                functools.partial(self._check_node_still_dead, n))
-                            Thread.start()
-                    if found_resurrected_node:
-                        self.logger.info("Found resurrected node, updating collections")
-                        if self._process_node_resurrection(
-                                n, self._ctx.active_node_list, self._ctx.dead_node_set):
-                            resurrected_node_list.append(n)
-
-            if dead_node_list or resurrected_node_list:
-                self._send(self._ctx.node_list, util.json_from_list(
-                    self._ctx.active_node_list, 'active_node_list'))
-                util.store_list_to_file(
-                    self._ctx.active_node_list, self._ctx.active_node_list_file, self._ctx.this_node.group_name)
-
-                if resurrected_node_list:
-                    #mail_sender.send_node_status_alerts(
-                    #     resurrected_node_list, "RESURRECTED_NODE")
-                    self._ctx.ntf_manager.process_node_status_alerts(
-                        resurrected_node_list, "RESURRECTED_NODE")
-
-                if dead_node_list:
-                    #mail_sender.send_node_status_alerts(
-                    #     dead_node_list, "DEAD_NODE")
-                    self._ctx.ntf_manager.process_node_status_alerts(
-                        dead_node_list, "DEAD_NODE")
-
-        except:
-            self._do_shutdown(sys.exc_info())
-
-        finally:
-            self._ctx.resource_lock.release()
-
-        return dead_node_list
-    '''
 
     def _update_node_collections(self, a_node_list):
         """Read a_node_list, and update active_node_list and dead_node_list,
         if needed"""
 
         try:
-            a_node_list[:] = self._ctx.nodelist_reader.get_node_list(self._ctx.this_node, self._ctx.mode)
+            a_node_list[:] = self._ctx.nodelist_reader.read_node_list(self._ctx.this_node, self._ctx.mode)
 
             # Check if cluster scaled out, or just created
             nodes = [n for n in a_node_list if n not in self._ctx.active_node_list and

@@ -6,7 +6,7 @@ import node
 import util
 
 
-class Reader(object):
+class FileReader(object):
     def __init__(self, nodelist_file):
         self.nodelist_file = nodelist_file
         self.node_list = []
@@ -14,7 +14,7 @@ class Reader(object):
                                 'MACHINE_TYPE', 'MACHINE_ID', 'GROUP_NAME']
         self.logger = logging.getLogger('nodechecker.reader')
 
-    def get_node_list(self, my_node, mode):
+    def read_node_list(self, my_node, mode):
         node_list = []
         try:
             with open(self.nodelist_file, 'r') as f:
@@ -39,7 +39,7 @@ class Reader(object):
             util.log_exception(sys.exc_info())
         return node_list
 
-    def get_attribute(self, ip_address, attr_type):
+    def read_attribute(self, ip_address, attr_type):
         try:
             attr_pos = self.node_attributes.index(attr_type)
             attr_ip_pos = self.node_attributes.index('IP_ADDRESS')

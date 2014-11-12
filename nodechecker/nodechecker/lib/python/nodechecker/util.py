@@ -3,10 +3,18 @@
 import json
 import commands
 import logging
+import os
+import subprocess
 import sys
 import traceback
+import threading
+import time
+import socket
 
 logger = logging.getLogger('nodechecker.util')
+
+
+
 
 
 def log_message(message, exc_info):
@@ -62,3 +70,28 @@ def store_list_to_file(a_list, a_file, group_name):
             f.flush()
     except:
         log_message("Error processing file %s" % a_file, sys.exc_info())
+
+
+def send(this_node, to_nodes, data):
+    # def send(ctx):
+    print("ENTER send()")
+    try:
+        if len(to_nodes) > 0:
+            # _#logger.debug("Sending data %s" % str(data))
+            print("Sending data:" + str(data))
+
+            for n in to_nodes:
+                if n != this_node:
+                    # _#logger.debug("Sending to node %s" % str(n.ip_address))
+                    print("Sending to node:" + str(n.ip_address))
+                    print("Sending to port:" + str(n.port))
+
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    sock.sendto(data, (n.ip_address, n.port))
+        else:
+            # _do_shutdown()(None, 1, "No nodes to send data")
+            pass
+            print("nodes not here")
+    except:
+        print("EXCEPTION in send() " + sys.exc_info())
+        log_exception(sys.exc_info())

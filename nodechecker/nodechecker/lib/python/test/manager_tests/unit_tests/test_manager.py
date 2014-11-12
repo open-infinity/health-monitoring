@@ -17,6 +17,7 @@ ctx = None
 
 HB_PERIOD_IN_SEC = 0.001
 
+
 def setup():
     global conf, resource_lock, ctx
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -26,7 +27,6 @@ def setup():
     ctx = nodechecker.context.Context()
     ctx.this_node = this_node
     ctx.resource_lock = resource_lock
-
 
 
 def test_master_election_become_master():

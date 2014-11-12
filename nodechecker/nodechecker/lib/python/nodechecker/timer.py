@@ -62,11 +62,10 @@ class HeartBeatSender(RepeatingThreadSafeTimer):
 
 class DeadNodeScanner(RepeatingThreadSafeTimer):
     def __init__(self, interval, ctx, args=[], kwargs={}):
-        self._nodeCreationVerifier = None
+        self._node_creation_verifier_list = []
         self._ctx = ctx
-        self._ctx.blah = None
         RepeatingThreadSafeTimer.__init__(self, self._ctx.resource_lock, interval,
-                                          self.blah, args, kwargs)
+                                          self._dead_node_scan, args, kwargs)
 
     # def process_node_resurrection(resurrected_node, active_nodes, dead_nodes):
     # TODO: change node uuid everwhere to ip+port
@@ -80,157 +79,33 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         else:
             return False
 
-    def run(self):
-        while True:
-            print("overriden run")
-            now = time.strftime("%H:%M:%S:%MS", time.localtime())
-            print(now + "...timer waiting" )
-
-            self.finished.wait(self.interval)
-
-            now = time.strftime("%H:%M:%S:%MS", time.localtime())
-            print(now + "...timer awake")
-            if not self.finished.is_set():
-                now = time.strftime("%H:%M:%S:%MS", time.localtime())
-                print(now + "...executing function")
-                self.r_lock.acquire()
-                try:
-                    self.function(*self.args, **self.kwargs)
-                except:
-                    pass
-                finally:
-                    self.r_lock.release()
-                now = time.strftime("%H:%M:%S:%MS", time.localtime())
-                print(now + "...function done")
-            else:
-                print("finished is set")
-                #self._nodeCreationVerifier.cancel()
-                break
-            print ("RepeatingThreadSafeTimer EXIT run ")
-
     def cancel(self):
-        print("..........overridded cancel")
-
-        if self._nodeCreationVerifier:
-            print("cancelling _nodeCreationVerifier")
-            self._nodeCreationVerifier.cancel()
-            print("waiting for termination of _nodeCreationVerifier")
-            self._nodeCreationVerifier.join()
-            #time.sleep(5)
+        if self._node_creation_verifier_list:
+            for t in self._node_creation_verifier_list:
+                t.cancel()
+            self._node_creation_verifier_list[:] = [] 
 
         self.finished.set()
-        print("cancel exit")
+        return self._node_creation_verifier_list
 
-    def blah(self):
-        print("blaaaaaaaaaaaaaaaaaaaaaaah")
-        dead_node_list = []
-        resurrected_node_list = []
-
-        try:
-            for n in self._ctx.node_list:
-                #if self._nodeCreationVerifier:
-                #    self._nodeCreationVerifier.cancel()
-                print("..1..")
-                if self._ctx.this_node.ip_address == n.ip_address:
-                    print("..2..")
-                    continue
-                print("..3..")
-                found_new_dead_node = False
-                found_resurrected_node = False
-                path = os.path.join(self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, n.hostname)
-                known_as_dead = n.ip_address in self._ctx.dead_node_set
-                # FIXME: Nested try
-                try:
-                    self._ctx.min_time_diff = self._ctx.BIG_TIME_DIFF
-                    os.path.walk(path, self.find_minimal_rrd_timestamp,
-                                 [self._ctx, time.mktime(time.localtime())])
-                    diff = self._ctx.min_time_diff
-                    print("..5..")
-
-                    if diff >= self._ctx.dead_node_timeout and not known_as_dead:
-                        print("..6..")
-                        found_new_dead_node = True
-
-                    elif diff < self._ctx.dead_node_timeout and known_as_dead:
-                        print("..7..")
-                        found_resurrected_node = True
-
-                except os.error:
-                    # TODO: don't use exceptions for program flow
-                    print("..8..")
-                    found_new_dead_node = True
-
-                except:
-                    print("..9..")
-                    pass
-                    print("EXCEPTION 2 in dead_node_scan" + str(sys.exc_info()))
-
-                finally:
-                    if found_new_dead_node:
-                        print("..10..")
-                        if n.ip_address not in self._ctx.new_dead_node_set:
-                            print("..11..")
-                            self._ctx.new_dead_node_set.add(n.ip_address)
-                            #self._nodeCreationVerifier = threading.Timer(self._ctx.NODE_CREATION_TIMEOUT,
-                            #                                             self.check_node_still_dead,
-                            #                                             [n])
-                            #self._nodeCreationVerifier.start()
-                            self._ctx.blah = threading.Timer(self._ctx.NODE_CREATION_TIMEOUT,
-                                                                         self.check_node_still_dead,
-                                                                         [n])
-                            self._ctx.blah.start()
-                            time.sleep(6)
-                            self._ctx.blah.cancel()
-                    if found_resurrected_node:
-                        print("..12..")
-                        if self._process_node_resurrection(n):
-                            resurrected_node_list.append(n)
-                    #self._nodeCreationVerifier.cancel()
-                print("canceliing")
-                self._ctx.blah.cancel()
-                print("canceliing")
-
-            print("..13..")
-            #self._nodeCreationVerifier.cancel()
-            if dead_node_list or resurrected_node_list:
-                print("..14..")
-                util.send(self._ctx.node_list, util.json_from_list(
-                    self._ctx.active_node_list, 'active_node_list'))
-                util.store_list_to_file(
-                    self._ctx.active_node_list, self._ctx.active_node_list_file, self._ctx.this_node.group_name)
-
-                if resurrected_node_list:
-                    print("..15..")
-                    self._ctx.ntf_manager.process_node_status_alerts(
-                        resurrected_node_list, "RESURRECTED_NODE")
-
-                if dead_node_list:
-                    print("..16..")
-                    self._ctx.ntf_manager.process_node_status_alerts(
-                        dead_node_list, "DEAD_NODE")
-
-        except:
-            print("..17..")
-            pass
-            print("EXCEPTION in dead_node_scan()" + str(sys.exc_info()))
-
-        finally:
-            print("..18..")
-            self._nodeCreationVerifier.cancel()
-            pass
-
+    def _remove_expired_timers(self):
+        for t in self._node_creation_verifier_list:
+            if not t.isAlive:
+                    self._node_creation_verifier_list.remove(t)
+    
     def _dead_node_scan(self):
         dead_node_list = []
         resurrected_node_list = []
 
+        self._remove_expired_timers()
         # self._ctx.resource_lock.acquire()
         try:
             for n in self._ctx.node_list:
-                print("..1..")
+                #print("..1..")
                 if self._ctx.this_node.ip_address == n.ip_address:
-                    print("..2..")
+                    #print("..2..")
                     continue
-                print("..3..")
+                #print("..3..")
                 found_new_dead_node = False
                 found_resurrected_node = False
                 #print(self._ctx.conf.collectd_home)
@@ -247,7 +122,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                     os.path.walk(path, self.find_minimal_rrd_timestamp,
                                  [self._ctx, time.mktime(time.localtime())])
                     diff = self._ctx.min_time_diff
-                    print("..5..")
+                    #print("..5..")
 
                     if diff >= self._ctx.dead_node_timeout and not known_as_dead:
                         print("..6..")
@@ -260,7 +135,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                         found_new_dead_node = True
 
                     elif diff < self._ctx.dead_node_timeout and known_as_dead:
-                        print("..7..")
+                        #print("..7..")
                         # logger.debug("Found node that resurrected from dead: %s"
                         # % n.hostname)
                         # logger.debug(
@@ -272,21 +147,21 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
 
                 except os.error:
                     # TODO: don't use exceptions for program flow
-                    print("..8..")
+                    #print("..8..")
                     found_new_dead_node = True
 
                 except:
                     # _do_shutdown(sys.exc_info())
-                    print("..9..")
+                    #print("..9..")
                     pass
                     print("EXCEPTION 2 in dead_node_scan" + str(sys.exc_info()))
 
                 finally:
                     if found_new_dead_node:
-                        print("..10..")
+                        #print("..10..")
                         # logger.debug("new_dead_node_set:: %s" % self._ctx.new_dead_node_set)
                         if n.ip_address not in self._ctx.new_dead_node_set:
-                            print("..11..")
+                            #print("..11..")
                             # logger.info("Starting timer for new dead node")
                             self._ctx.new_dead_node_set.add(n.ip_address)
                             # delayed_dead_node_timer = threading.Timer(
@@ -294,47 +169,48 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                             # functools.partial(check_node_still_dead, n))
 
                             #timer_delayed_dead_node_start(n, self._ctx)
-                            #self._nodeCreationVerifier = threading.Timer(self._ctx.NODE_CREATION_TIMEOUT,
-                            #                                             self.check_node_still_dead,
-                            #                                             [n])
-                            #self._nodeCreationVerifier.start()
+                            node_creation_verifier = threading.Timer(self._ctx.NODE_CREATION_TIMEOUT,
+                                                                         self.check_node_still_dead,
+                                                                         [n])
+                            node_creation_verifier.start()  
+                            self._node_creation_verifier_list.append(node_creation_verifier)                                                        
                     if found_resurrected_node:
-                        print("..12..")
+                        #print("..12..")
                         # logger.info("Found resurrected node, updating collections")
                         # if process_node_resurrection(
                         # n, self._ctx.active_node_list, self._ctx.dead_node_set):
                         if self._process_node_resurrection(n):
                             resurrected_node_list.append(n)
-            print("..13..")
+            #print("..13..")
             if dead_node_list or resurrected_node_list:
-                print("..14..")
+                #print("..14..")
                 util.send(self._ctx.node_list, util.json_from_list(
                     self._ctx.active_node_list, 'active_node_list'))
                 util.store_list_to_file(
                     self._ctx.active_node_list, self._ctx.active_node_list_file, self._ctx.this_node.group_name)
 
                 if resurrected_node_list:
-                    print("..15..")
+                    #print("..15..")
                     # mail_sender.send_node_status_alerts(
                     # resurrected_node_list, "RESURRECTED_NODE")
                     self._ctx.ntf_manager.process_node_status_alerts(
                         resurrected_node_list, "RESURRECTED_NODE")
 
                 if dead_node_list:
-                    print("..16..")
+                    #print("..16..")
                     # mail_sender.send_node_status_alerts(
                     # dead_node_list, "DEAD_NODE")
                     self._ctx.ntf_manager.process_node_status_alerts(
                         dead_node_list, "DEAD_NODE")
 
         except:
-            print("..17..")
+            #print("..17..")
             # _do_shutdown(sys.exc_info())
             pass
             print("EXCEPTION in dead_node_scan()" + str(sys.exc_info()))
 
         finally:
-            print("..18..")
+            #print("..18..")
             pass
             #self._ctx.resource_lock.release()
             # return dead_node_list
@@ -397,3 +273,6 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                         self._ctx.min_time_diff = diff
                 else:
                     pass
+                    
+def bloh(n):
+    print('bloooooh')                    

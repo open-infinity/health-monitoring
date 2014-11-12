@@ -71,16 +71,18 @@ def test_dead_node_scanner_start_stop():
 
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     ctx.conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
-    ctx.NODE_CREATION_TIMEOUT = 4
+    ctx.NODE_CREATION_TIMEOUT = 10
 
     ctx.ntf_manager = MagicMock()
     print(ctx.conf.collectd_rrd_dir)
-    scan_period = 1
+    scan_period = 0.01
     dead_node_scanner = nodechecker.timer.DeadNodeScanner(scan_period, ctx)
     #dead_node_scanner._dead_node_scan = MagicMock()
 
     dead_node_scanner.start()
     time.sleep(scan_period * 2)
-    dead_node_scanner.cancel()
+    pending_timers_list = dead_node_scanner.cancel()
     dead_node_scanner.join()
     assert dead_node_scanner.isAlive() is False
+    assert len(pending_timers_list) == 0
+    

@@ -4,9 +4,11 @@ import sys
 import os
 import json
 import logging.handlers
-import notification
+
 import nodechecker.util
 import nodechecker.node
+
+import notification
 
 
 class JsonWrapper(object):
@@ -16,6 +18,7 @@ class JsonWrapper(object):
             notifications = []
         self.notifications = notifications
 
+
 class JsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if not (isinstance(obj, notification.Notification)
@@ -24,6 +27,7 @@ class JsonEncoder(json.JSONEncoder):
             return super(JsonEncoder, self).default(obj)
 
         return obj.__dict__
+
 
 class NotificationLogger(object):
     def __init__(self, config, node):
@@ -36,7 +40,7 @@ class NotificationLogger(object):
         if notification_list:
             try:
                 dump = json.dumps(JsonWrapper(self.node, notification_list),
-                                cls=JsonEncoder)
+                                  cls=JsonEncoder)
                 self.ntf_logger.info(dump)
             except:
                 nodechecker.util.log_exception(sys.exc_info())

@@ -6,15 +6,16 @@ import SocketServer
 import json
 import logging
 import time
+import thread
+
 import util
 import node
-import thread
 
 
 class UDPSocketListener(threading.Thread):
     """Implements a thread used for listening to master heartbeats."""
     # def __init__(self, a_node, a_heartbeats_received, a_master_list,
-    #             a_active_node_list, a_lock_resources):
+    # a_active_node_list, a_lock_resources):
     def __init__(self, context):
         threading.Thread.__init__(self)
         self.logger = logging.getLogger('nodechecker.listener')
@@ -89,12 +90,12 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
             # Received heartbeat signal
             if json_object[0] == "node":
                 self.handle_heartbeat(json_object)
-                
+
             # Received active_node_list. Should be sent only to slaves
             elif json_object[0] == "active_node_list" and self._server.ctx.this_node.role == "SLAVE":
                 print("recv act nl")
                 self.handle_list(json_object)
-                
+
             else:
                 print("unexp")
                 self._server.logger.warn("Received unexpected data")

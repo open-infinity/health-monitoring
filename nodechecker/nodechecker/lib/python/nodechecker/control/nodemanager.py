@@ -5,9 +5,11 @@ import sys
 import logging
 import shutil
 import fileinput
-import nodechecker.util
 import subprocess
+
+import nodechecker.util
 import nodechecker.config
+
 
 START_SCRIPT = "bin/start.sh"
 STOP_SCRIPT = "bin/stop.sh"

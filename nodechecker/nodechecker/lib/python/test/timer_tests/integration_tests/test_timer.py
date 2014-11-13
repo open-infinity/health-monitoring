@@ -56,7 +56,3 @@ def test_send_receive_heartbeats():
     assert ctx2.master_list[0] == ctx.this_node
 
 
-def test_dead_node_scan():
-    global resource_lock, ctx
-    scan_period = 1
-    dead_node_scanner = nodechecker.timer.DeadNodeScanner(scan_period)

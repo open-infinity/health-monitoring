@@ -1,16 +1,17 @@
 #!/usr/bin/env python2
 
 import os
-import subprocess
 import sys
+
+import nodechecker.util
 
 import mailer
 import logger
 import snmp
 import notification
-import nodechecker.util
 
-#ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
+
+# ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
 
 class NotificationManager(object):
     def __init__(self, node, conf):
@@ -18,8 +19,8 @@ class NotificationManager(object):
         self.node = node
         self.mail_sender = self.create_mail_sender()
         self.snmp_trap_sender = self.create_snmp_trap_sender()
-        self.notification_logger = logger.\
-                NotificationLogger(self.conf, self.node)
+        self.notification_logger = logger. \
+            NotificationLogger(self.conf, self.node)
 
     def process_notifications(self, notification_list):
         try:
@@ -35,7 +36,7 @@ class NotificationManager(object):
 
     def process_node_status_alerts(self, node_list, category):
         self.process_notifications(self.create_notifications(
-                node_list, category))
+            node_list, category))
 
     def move_processed_notifications(self, notification_list):
         try:
@@ -68,7 +69,7 @@ class NotificationManager(object):
                 new_notification = notification.Notification()
                 notification_list.append(
                     new_notification.from_node(n, category))
-            #self.send_notifications(notification_list)
+                #self.send_notifications(notification_list)
         except:
             nodechecker.util.log_exception(sys.exc_info())
         return notification_list

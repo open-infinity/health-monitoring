@@ -1,7 +1,5 @@
 #!/usr/bin/env python2
 
-import nodechecker
-
 
 class Notification(object):
     _MSG_DEAD_NODE = "Lost contact with host"

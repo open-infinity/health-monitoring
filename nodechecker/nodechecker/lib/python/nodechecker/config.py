@@ -1,18 +1,15 @@
 #!/usr/bin/env python2
 
 import ConfigParser
-import os
-import inspect
 
 
 class Config(object):
-
     def __init__(self, conf_file):
         config = ConfigParser.SafeConfigParser()
         config.read(conf_file)
 
         hm_root = config.get('hm', 'root')
-        
+
         self.node_mode = config.get('node', 'mode')
         self.node_log_level = config.get('node', 'log_level')
         self.node_log_file = config.get('node', 'log_file')

@@ -6,6 +6,7 @@ import hashlib
 
 class Node(object):
     """This class represents health monitoring node."""
+
     def __init__(self,
                  port=0,
                  ip_address=None,
@@ -39,7 +40,7 @@ class Node(object):
         return not self.__eq__(other)
 
     def __lt__(self, other):
-        return self.ip_address < other.ip_address 
+        return self.ip_address < other.ip_address
 
     def __hash__(self):
         h = hashlib.md5()
@@ -49,12 +50,12 @@ class Node(object):
 
     def to_json(self):
         return json.dumps(
-        ["node", {"ip_address": self.ip_address,
-                  "hostname": self.hostname,
-                  "role": self.role,
-                  "port": self.port,
-                  "machine_type": self.machine_type
-        }])
+            ["node", {"ip_address": self.ip_address,
+                      "hostname": self.hostname,
+                      "role": self.role,
+                      "port": self.port,
+                      "machine_type": self.machine_type
+            }])
 
     def from_json(self, json_data):
         json_object = json.loads(json_data)
@@ -82,8 +83,8 @@ class Node(object):
 
     def __repr__(self):
         return "node %s %s %s %s %s" % (
-              self.role, self.hostname, self.ip_address, self.port,
-              self.machine_type)
+            self.role, self.hostname, self.ip_address, self.port,
+            self.machine_type)
 
 
 def node_list_from_dict_list(dict_list):
@@ -95,7 +96,7 @@ def node_list_from_dict_list(dict_list):
 
 def node_from_dict(dict_item):
     return Node(int(dict_item["port"]),
-                    dict_item["ip_address"],
-                    dict_item["role"],
-                    dict_item["hostname"],
-                    dict_item["machine_type"])
+                dict_item["ip_address"],
+                dict_item["role"],
+                dict_item["hostname"],
+                dict_item["machine_type"])

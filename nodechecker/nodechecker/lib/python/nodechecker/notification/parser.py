@@ -4,14 +4,16 @@ import os
 import sys
 import time
 import logging
-import notification
+
 import nodechecker.util
 
-#OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
+import notification
+
+
+# OI_HEALTH_MONITORING_ROOT = "OI_HEALTH_MONITORING_ROOT"
 
 
 class NotificationParser(object):
-
     def __init__(self, node, config):
         self.logger = logging.getLogger('nodechecker.notificationreader')
         self.config = config
@@ -51,8 +53,8 @@ class NotificationParser(object):
                     if key == 'Time':
                         ntfc.time = time.asctime(time.gmtime(float(value)))
                     if key == 'Host':
-                    # FIXME: strip whitespace at start from all values,
-                    # not just for hostname
+                        # FIXME: strip whitespace at start from all values,
+                        # not just for hostname
                         ntfc.hostname = value[1:]
                     if key == 'Plugin':
                         ntfc.plugin = value

@@ -35,7 +35,7 @@ def test_master_election_become_master():
 
     ctx.active_node_list = [ctx.this_node]    
     manager = nodechecker.manager.Manager(ctx)
-    
+
     udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
     udp_listener.run = MagicMock()
     udp_listener.shutdown = MagicMock()
@@ -60,7 +60,7 @@ def test_master_election_become_slave():
 
     ctx.active_node_list = [ctx.this_node]    
     manager = nodechecker.manager.Manager(ctx)
-    
+
     udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
     udp_listener.run = MagicMock()
     udp_listener.shutdown = MagicMock()
@@ -85,9 +85,9 @@ def test_get_master_count_with_role_master_and_0_master_hbs_received():
     ctx.active_node_list = [ctx.this_node]  
     ctx.heartbeat_period = 0
     ctx.this_node.role = "MASTER"
-  
+
     manager = nodechecker.manager.Manager(ctx)
-    
+
     udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
     udp_listener.run = MagicMock()
     udp_listener.shutdown = MagicMock()
@@ -105,9 +105,9 @@ def test_get_master_count_with_role_slave_and_0_master_hbs_received():
     ctx.active_node_list = [ctx.this_node]  
     ctx.heartbeat_period = 0
     ctx.this_node.role = "SLAVE"
-  
+
     manager = nodechecker.manager.Manager(ctx)
-    
+
     udp_listener = nodechecker.udp_listener.UDPSocketListener(ctx)
     udp_listener.run = MagicMock()
     udp_listener.shutdown = MagicMock()
@@ -115,41 +115,28 @@ def test_get_master_count_with_role_slave_and_0_master_hbs_received():
     
     res = manager._get_master_count(1)
     
-    assert res == "TOO_LOW"   
+    assert res == "TOO_LOW"
 
 
-def test_send_heartbeats_with_cancel():
-    # Setup
+def test_become_a_master():
+    global ctx
+
+    ctx.active_node_list = [ctx.this_node]
+    ctx.heartbeat_period = 1
+    ctx.this_node.role = "SLAVE"
+
     manager = nodechecker.manager.Manager(ctx)
-    nodechecker.manager.send = MagicMock()
-    ctx.heartbeat_period = HB_PERIOD_IN_SEC
+    manager._master_loop = MagicMock()
+    manager.logger = MagicMock()
+    nodechecker.util.store_list_to_file = MagicMock()
+    ctx.node_manager = MagicMock()
+    manager._become_a_master()
+    manager.shutdown()
 
-    #Run
-    nodechecker.manager.send_heartbeats(ctx)
-    time.sleep(ctx.heartbeat_period * 3)
-
-    # Verification
-    assert nodechecker.manager.send.call_count > 1
-
-    # Tear down
-    manager._cancel_timers()
+    assert ctx.this_node.role == "MASTER"
 
 
-def test_start_dead_node_scan_timer_with_cancel():
-    # Setup
-    manager = nodechecker.manager.Manager(ctx)
-    manager._dead_node_scan = MagicMock()
-    ctx.rrd_scan_period = 0.001
 
-    # Run
-    manager._start_dead_node_scan_timer()
-    time.sleep(ctx.rrd_scan_period * 3)
-
-    # Verification
-    assert manager._dead_node_scan.call_count > 1
-
-    # Tear down
-    manager._cancel_timers()
 
 
 

@@ -52,7 +52,9 @@ class HeartBeatSender(RepeatingThreadSafeTimer):
     def __init__(self, interval, args=[], kwargs={}):
         self._ctx = args[0]
 
-        RepeatingThreadSafeTimer.__init__(self, self._ctx.resource_lock, interval,
+        RepeatingThreadSafeTimer.__init__(self,
+                                          self._ctx.resource_lock,
+                                          interval,
                                           util.send,
                                           [self._ctx.this_node,
                                            self._ctx.node_list,
@@ -61,10 +63,12 @@ class HeartBeatSender(RepeatingThreadSafeTimer):
 
 
 class DeadNodeScanner(RepeatingThreadSafeTimer):
-    def __init__(self, interval, ctx, args=[], kwargs={}):
+    def __init__(self, ctx, args=[], kwargs={}):
         self._node_creation_verifier_list = []
         self._ctx = ctx
-        RepeatingThreadSafeTimer.__init__(self, self._ctx.resource_lock, interval,
+        RepeatingThreadSafeTimer.__init__(self,
+                                          self._ctx.resource_lock,
+                                          self._ctx.dead_node_timeout,
                                           self._dead_node_scan, args, kwargs)
 
     # def process_node_resurrection(resurrected_node, active_nodes, dead_nodes):
@@ -83,16 +87,16 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         if self._node_creation_verifier_list:
             for t in self._node_creation_verifier_list:
                 t.cancel()
-            self._node_creation_verifier_list[:] = [] 
+            self._node_creation_verifier_list[:] = []
 
         self.finished.set()
         return self._node_creation_verifier_list
 
     def _remove_expired_timers(self):
-        for t in self._node_creation_verifier_list:
-            if not t.isAlive:
-                    self._node_creation_verifier_list.remove(t)
-    
+        for timer in self._node_creation_verifier_list:
+            if not timer.isAlive:
+                self._node_creation_verifier_list.remove(timer)
+
     def _dead_node_scan(self):
         dead_node_list = []
         resurrected_node_list = []
@@ -101,7 +105,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         # self._ctx.resource_lock.acquire()
         try:
             for n in self._ctx.node_list:
-                #print("..1..")
+                # print("..1..")
                 if self._ctx.this_node.ip_address == n.ip_address:
                     #print("..2..")
                     continue
@@ -170,10 +174,10 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
 
                             #timer_delayed_dead_node_start(n, self._ctx)
                             node_creation_verifier = threading.Timer(self._ctx.NODE_CREATION_TIMEOUT,
-                                                                         self.check_node_still_dead,
-                                                                         [n])
-                            node_creation_verifier.start()  
-                            self._node_creation_verifier_list.append(node_creation_verifier)                                                        
+                                                                     self.check_node_still_dead,
+                                                                     [n])
+                            node_creation_verifier.start()
+                            self._node_creation_verifier_list.append(node_creation_verifier)
                     if found_resurrected_node:
                         #print("..12..")
                         # logger.info("Found resurrected node, updating collections")
@@ -181,7 +185,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                         # n, self._ctx.active_node_list, self._ctx.dead_node_set):
                         if self._process_node_resurrection(n):
                             resurrected_node_list.append(n)
-            #print("..13..")
+            # print("..13..")
             if dead_node_list or resurrected_node_list:
                 #print("..14..")
                 util.send(self._ctx.node_list, util.json_from_list(
@@ -204,13 +208,13 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                         dead_node_list, "DEAD_NODE")
 
         except:
-            #print("..17..")
+            # print("..17..")
             # _do_shutdown(sys.exc_info())
             pass
             print("EXCEPTION in dead_node_scan()" + str(sys.exc_info()))
 
         finally:
-            #print("..18..")
+            # print("..18..")
             pass
             #self._ctx.resource_lock.release()
             # return dead_node_list
@@ -254,7 +258,6 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             self._ctx.resource_lock.release()
         print(" exit check_node_still_dead")
 
-
     # TODO: newest = max(glob.iglob('upload/*.log'), key=os.path.getctime)
     def find_minimal_rrd_timestamp(self, arg_list, dir_name, names):
         # ctx = arg_list[0]
@@ -273,6 +276,3 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                         self._ctx.min_time_diff = diff
                 else:
                     pass
-                    
-def bloh(n):
-    print('bloooooh')                    

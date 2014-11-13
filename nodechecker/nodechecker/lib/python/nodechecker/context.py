@@ -1,5 +1,4 @@
 class Context(object):
-
     # Constants
     BIG_TIME_DIFF = 1000000
     RRD_HTTP_SERVER_PORT = 8181
@@ -30,7 +29,7 @@ class Context(object):
     resource_lock = None
 
     # State variables
-    role = "SLAVE"
+    #role = "SLAVE"
     mode = "RUN"
     my_master = None
 

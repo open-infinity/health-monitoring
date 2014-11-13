@@ -1,12 +1,15 @@
 #!/usr/bin/env python2
 
 # FIXME
-#from nodechecker.nodechecker import *
-import nodechecker.main
-import daemon
+# from nodechecker.nodechecker import *
 import os
 import subprocess
+
 import nodechecker.control.nodemanager
+
+import nodechecker.main
+import daemon
+
 
 NODECHECKER_PID_FILE = 'var/run/oi3-nodechecker.pid'
 START_SCRIPT = "bin/start.sh"

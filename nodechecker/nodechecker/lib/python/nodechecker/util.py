@@ -3,18 +3,11 @@
 import json
 import commands
 import logging
-import os
-import subprocess
 import sys
 import traceback
-import threading
-import time
 import socket
 
 logger = logging.getLogger('nodechecker.util')
-
-
-
 
 
 def log_message(message, exc_info):

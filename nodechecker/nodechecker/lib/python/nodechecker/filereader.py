@@ -2,6 +2,7 @@
 
 import sys
 import logging
+
 import node
 import util
 
@@ -26,15 +27,15 @@ class FileReader(object):
                             my_node.port = 11911 + i
                         i += 1
                         node_list.append(node.Node(
-                              port=my_node.port,
-                              ip_address=node_data_list[0],
-                              hostname=node_data_list[2],
-                              machine_type=node_data_list[3],
-                              ip_address_public=node_data_list[1],
-                              instance_id=my_node.instance_id,
-                              cluster_id=my_node.cluster_id,
-                              machine_id=node_data_list[4],
-                              cloud_zone=my_node.cloud_zone))
+                            port=my_node.port,
+                            ip_address=node_data_list[0],
+                            hostname=node_data_list[2],
+                            machine_type=node_data_list[3],
+                            ip_address_public=node_data_list[1],
+                            instance_id=my_node.instance_id,
+                            cluster_id=my_node.cluster_id,
+                            machine_id=node_data_list[4],
+                            cloud_zone=my_node.cloud_zone))
         except:
             util.log_exception(sys.exc_info())
         return node_list

@@ -1,16 +1,16 @@
 #!/usr/bin/env python2
 
 import smtplib
-#import os
+# import os
 import sys
 import logging
 import email.mime.text
-import notification
 import nodechecker.util
 
 ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
 MSG_DELIMITER = '-----------------------------------------------' \
                 '------------------'
+
 
 class MailSender(object):
     def __init__(self, conf, node):
@@ -25,14 +25,14 @@ class MailSender(object):
         if notification_list:
             try:
                 msg = email.mime.text.MIMEText(
-                      self.format_email_message(notification_list))
+                    self.format_email_message(notification_list))
                 msg['Subject'] = self.conf.email_subject
                 msg['From'] = self.conf.email_from
                 msg['To'] = self.conf.email_to
                 s = smtplib.SMTP(self.conf.email_smpt_server)
                 s.sendmail(
-                      self.conf.email_from, self.conf.email_to,
-                      msg.as_string())
+                    self.conf.email_from, self.conf.email_to,
+                    msg.as_string())
                 s.quit()
                 #self.move_sent_items(notification_list)
             except:
@@ -97,17 +97,17 @@ class MailSender(object):
         msg_body = "".join(msg_body_items)
         return msg_header + msg_sender_info + msg_body
 
-    # def move_sent_items(self, notification_list):
-    #     try:
-    #         for n in notification_list:
-    #             if n.file_path:
-    #                 os.rename(n.file_path, os.path.join(
-    #                       os.environ[ENV_HM_HOME_DIR],
-    #                       self.conf.notifications_home,
-    #                       self.conf.notifications_sent_dir,
-    #                       n.file_name))
-    #             #should log notification not originating from collect too
-    #             else:
-    #                 pass
-    #     except:
-    #         nodechecker.util.log_exception(sys.exc_info())
+        # def move_sent_items(self, notification_list):
+        #     try:
+        #         for n in notification_list:
+        #             if n.file_path:
+        #                 os.rename(n.file_path, os.path.join(
+        #                       os.environ[ENV_HM_HOME_DIR],
+        #                       self.conf.notifications_home,
+        #                       self.conf.notifications_sent_dir,
+        #                       n.file_name))
+        #             #should log notification not originating from collect too
+        #             else:
+        #                 pass
+        #     except:
+        #         nodechecker.util.log_exception(sys.exc_info())

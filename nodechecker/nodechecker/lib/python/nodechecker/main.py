@@ -14,6 +14,7 @@ import signal
 import logging.handlers
 import threading
 import time
+
 import config
 import notification.parser
 import notification.manager
@@ -21,6 +22,7 @@ import filereader
 import util
 import node
 import context
+
 
 # Constants
 BIG_TIME_DIFF = 1000000
@@ -44,7 +46,7 @@ heartbeat_timer = None
 heartbeat_listener = None
 ntf_reader = None
 nodelist_reader = None
-#mail_sender = None
+# mail_sender = None
 ntf_manager = None
 node_manager = None
 conf = None
@@ -159,7 +161,7 @@ def process_settings(options, conf, node):
 
     if options and options.ip_address_public:
         node.ip_address_public = options.ip_address_public
-        
+
     # can't know which ip address to use automatically. this must be configured in config file    
     #elif conf.node_ip_address_public == "auto":
     #    node.ip_address_public = os.environ["OI_PUBLIC_IP"]
@@ -263,8 +265,8 @@ def update_node_collections(a_node_list):
 def set_master():
     if not node_list:
         shutdown(None, 1, "Unable to set a master for the node")
-    # !!!! warn, this was moved
-    #assign_master(node_list[0])
+        # !!!! warn, this was moved
+        #assign_master(node_list[0])
 
 
 def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
@@ -306,7 +308,7 @@ def init(settings=None, conf_obj=None, config_file=None, node_manager_obj=None):
     node_list = update_node_collections(node_list)[1]
     wait_for_machine_configured(nodelist_reader)
     set_master()
-    
+
     # Setup signal handlers
     signal.signal(signal.SIGTERM, sigterm_handler)
     signal.signal(signal.SIGINT, sigint_handler)
@@ -346,7 +348,7 @@ def shutdown(exc_info=None, exit_status=1, message="Shutting down"):
 def start(conf_obj, node_manager_obj):
     global loop, stop_event, lock_resources
     init(conf_obj=conf_obj, node_manager_obj=node_manager_obj)
-    loop = loop.Loop(None,  lock_resources, stop_event)
+    loop = loop.Loop(None, lock_resources, stop_event)
     loop.start()
 
 

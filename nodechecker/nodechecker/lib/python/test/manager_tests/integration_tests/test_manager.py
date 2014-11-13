@@ -32,10 +32,15 @@ def test_start_stop():
 
     #Setup
     ctx.active_node_list = [ctx.this_node]
+    ctx.node_list = [ctx.this_node]
     ctx.node_manager = MagicMock()
     ctx.nodelist_reader = MagicMock()
+    ctx.nodelist_reader.read_node_list = MagicMock(return_value=[ctx.this_node])
     ctx.ntf_manager = MagicMock()
     ctx.ntf_reader = MagicMock()
+    ctx.heartbeat_period = 0.01
+    ctx.dead_node_timeout = 0.01
+    nodechecker.util.store_list_to_file = MagicMock()
     manager = nodechecker.manager.Manager(ctx)
     print("role:" + ctx.this_node.role)
     manager._logger = MagicMock()
@@ -44,11 +49,12 @@ def test_start_stop():
     # Run
     manager.start()
     assert manager.isAlive() is True
-    time.sleep(5)
-    print("*************manager shutdown**************")
+    time.sleep(0.05)
     manager.shutdown()
     manager.join()
 
     # Verification
+    print(ctx.this_node.role)
+    assert ctx.this_node.role == "MASTER"
     assert manager.isAlive() is False
 

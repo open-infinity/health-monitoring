@@ -54,3 +54,7 @@ def test_dead_node_scanner_start_stop_with_node_creation_verifiers():
     assert dead_node_scanner.isAlive() is False
     assert len(pending_timers_list) == 0
 
+
+def test_dead_node_scanner_found_new_dead_node():
+    pass
+

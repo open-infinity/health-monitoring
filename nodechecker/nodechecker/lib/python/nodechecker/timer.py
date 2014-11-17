@@ -97,15 +97,16 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             if not timer.isAlive:
                 self._node_creation_verifier_list.remove(timer)
 
-    def _node_state(node_dir, at_time, known_as_dead):
+    def _node_state(self, node_dir, at_time, known_as_dead):
         self._ctx.min_time_diff = self._ctx.BIG_TIME_DIFF
-        res = ""
+        res = "NOT_CHANGED"
         os.path.walk(node_dir, self.find_minimal_rrd_timestamp,
                      [self._ctx, at_time])
         diff = self._ctx.min_time_diff
 
         if diff >= self._ctx.dead_node_timeout and not known_as_dead:
             print("..6..")
+            print (diff)
             # logger.debug("Found dead node %s" % n.hostname)
             # logger.debug(
             # "n.hostname = %s,dead_node_set=%s," \
@@ -127,7 +128,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             #       diff))
             #found_resurrected_node = True
             res = "CHANGED_TO_ALIVE"
-            
+        return res   
             
     def _dead_node_scan(self):
         dead_node_list = []

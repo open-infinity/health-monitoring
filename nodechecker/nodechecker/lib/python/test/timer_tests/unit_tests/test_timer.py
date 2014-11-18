@@ -57,8 +57,9 @@ def test_dead_node_scanner_start_stop_with_node_creation_verifiers():
 
 def test_node_state():
     
-    test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    test_parent_dir = os.path.abspath(os.path.join(test_dir, os.pardir))
+    curr_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    curr_dir_parent_1 = os.path.abspath(os.path.join(curr_dir, os.pardir))
+    curr_dir_parent_2 = os.path.abspath(os.path.join(curr_dir_parent_1, os.pardir))
     
     n1 = nodechecker.node.Node(ip_address='127.0.0.1', port=11111, hostname='n1')
     n2 = nodechecker.node.Node(ip_address='2.2.2.2', port=11911, hostname='n2')
@@ -68,11 +69,12 @@ def test_node_state():
     ctx.node_list = [n1, n2, n3, ctx.this_node]
     ctx.active_node_list = [n1, n2, n3, ctx.this_node]
     ctx.dead_node_set = None
-    ctx.conf.collectd_rrd_dir = os.path.join(test_parent_dir, "data", "rrd")
-    ctx.conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
+    ctx.conf = nodechecker.config.Config(os.path.join(curr_dir, 'nodechecker.conf'))
+    ctx.conf.collectd_rrd_dir = os.path.join(curr_dir_parent_2, "data", "rrd")
+    ctx.conf = nodechecker.config.Config(os.path.join(curr_dir, 'nodechecker.conf'))
     ctx.dead_node_timeout = 10
     
-    rrd_data_path = os.path.join(test_parent_dir, "data", "rrd")
+    rrd_data_path = os.path.join(curr_dir_parent_2, "data", "rrd")
     # <lastupdate>1416251047</lastupdate> <!-- 2014-11-17 21:04:07 EET -->
     last_update = 1416251047
     
@@ -81,3 +83,57 @@ def test_node_state():
     assert "CHANGED_TO_DEAD" == dead_node_scanner._node_state(rrd_data_path, last_update + ctx.dead_node_timeout + 1, False)    
     assert "NOT_CHANGED" == dead_node_scanner._node_state(rrd_data_path, last_update + ctx.dead_node_timeout + 1, True)
     assert "CHANGED_TO_ALIVE" == dead_node_scanner._node_state(rrd_data_path, last_update + ctx.dead_node_timeout - 1 , True)
+
+
+def test_find_minimal_rrd_timestamp():
+    curr_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    curr_dir_parent_1 = os.path.abspath(os.path.join(curr_dir, os.pardir))
+    curr_dir_parent_2 = os.path.abspath(os.path.join(curr_dir_parent_1, os.pardir))
+
+    
+    last_update = 1416251047
+    
+    
+    args = [last_update]
+    dir_name = os.path.join(curr_dir_parent_2, "data", "rrd","test-host","load")
+    names = ["load.rrd"] 
+    ctx.min_time_diff = -1
+    scanner = nodechecker.timer.DeadNodeScanner(ctx)
+    scanner.find_minimal_rrd_timestamp(args, dir_name, names)    
+    assert scanner._ctx.min_time_diff == 0
+    
+    ctx.min_time_diff = 0
+    scanner.find_minimal_rrd_timestamp(args, dir_name, names)    
+    assert scanner._ctx.min_time_diff == 0
+    
+    ctx.min_time_diff = 1
+    scanner.find_minimal_rrd_timestamp(args, dir_name, names)    
+    assert scanner._ctx.min_time_diff == 0
+    
+    ctx.min_time_diff = 50
+    scanner.find_minimal_rrd_timestamp(args, dir_name, names)    
+    assert scanner._ctx.min_time_diff == 0
+    
+    args = [last_update + 1]
+    scanner._ctx.min_time_diff = 2
+    scanner.find_minimal_rrd_timestamp(args, dir_name, names)    
+    assert scanner._ctx.min_time_diff == 1
+    
+    args = [last_update - 1]
+    scanner._ctx.min_time_diff = 2
+    scanner.find_minimal_rrd_timestamp(args, dir_name, names)    
+    assert scanner._ctx.min_time_diff == 2
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        

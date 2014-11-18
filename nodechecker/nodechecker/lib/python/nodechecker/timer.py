@@ -98,10 +98,10 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                 self._node_creation_verifier_list.remove(timer)
 
     def _node_state(self, node_dir, at_time, known_as_dead):
-        self._ctx.min_time_diff = self._ctx.BIG_TIME_DIFF
+        self._ctx.min_time_diff = -1
         res = "NOT_CHANGED"
         os.path.walk(node_dir, self.find_minimal_rrd_timestamp,
-                     [self._ctx, at_time])
+                     [at_time])
         diff = self._ctx.min_time_diff
 
         if diff >= self._ctx.dead_node_timeout and not known_as_dead:
@@ -208,7 +208,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                             node.hostname)
         self._ctx.resource_lock.acquire()
         try:
-            self._ctx.min_time_diff = self._ctx.BIG_TIME_DIFF
+            self._ctx.min_time_diff = -1
             os.path.walk(path, self.find_minimal_rrd_timestamp, [time.mktime(time.localtime())])
             diff = self._ctx.min_time_diff
             if diff < self._ctx.dead_node_timeout:
@@ -238,18 +238,33 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
     # TODO: newest = max(glob.iglob('upload/*.log'), key=os.path.getctime)
     def find_minimal_rrd_timestamp(self, arg_list, dir_name, names):
         # ctx = arg_list[0]
+        print("---enter---")
+
         time_now_in_ms = arg_list[0]
         # global min_time_diff
         for name in names:
+            print("---0---")
+            print(dir_name)
+            print(name)
+            print(os.path.join(dir_name, name))
             filename = os.path.join(dir_name, name)
             if os.path.isfile(filename):
+                print("---1---")
+
                 pipe = subprocess.Popen(
                     ['rrdtool', 'last', filename], stdout=subprocess.PIPE)
                 out = pipe.communicate()
                 epoch = int(out[0])
                 if epoch > 0:
+                    print("---2---")
+
                     diff = time_now_in_ms - epoch
-                    if self._ctx.min_time_diff > diff:
-                        self._ctx.min_time_diff = diff
+                    if diff >=0:
+                        if self._ctx.min_time_diff == -1:
+                            print("---3---")
+                            self._ctx.min_time_diff = diff
+                        elif self._ctx.min_time_diff > diff:
+                            print("---4--")
+                            self._ctx.min_time_diff = diff
                 else:
                     pass

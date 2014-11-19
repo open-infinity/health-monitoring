@@ -100,8 +100,11 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
     def _node_state(self, node_dir, at_time, known_as_dead):
         self._ctx.min_time_diff = -1
         res = "NOT_CHANGED"
-        os.path.walk(node_dir, self.find_minimal_rrd_timestamp,
-                     [at_time])
+        
+        # os.path.walk() calls find_minimal_rrd_timestamp() on each rrd file,
+        # and the latst update time from the rrd files is
+        # stored as self._ctx.min_time_diff 
+        os.path.walk(node_dir, self.find_minimal_rrd_timestamp, [at_time])
         diff = self._ctx.min_time_diff
 
         if diff >= self._ctx.dead_node_timeout and not known_as_dead:
@@ -118,7 +121,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             
 
         elif diff < self._ctx.dead_node_timeout and known_as_dead:
-            #print("..7..")
+            print("..7..")
             # logger.debug("Found node that resurrected from dead: %s"
             # % n.hostname)
             # logger.debug(
@@ -143,7 +146,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             for n in self._ctx.node_list:
                 if self._ctx.this_node.ip_address == n.ip_address:
                     continue
-                path = os.path.join(self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, n.hostname)
+                path = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, n.hostname)
                 node_state = "NOT_CHANGED"
                 
                 if os.path.exists(path):
@@ -204,7 +207,8 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         # global min_time_diff
 
         # now = time.mktime(time.localtime())
-        path = os.path.join(self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir,
+        path = os.path.join(self.conf.hm_root, self._ctx.conf.collectd_home,
+                            self._ctx.conf.collectd_rrd_dir,
                             node.hostname)
         self._ctx.resource_lock.acquire()
         try:
@@ -244,8 +248,8 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         # global min_time_diff
         for name in names:
             print("---0---")
-            print(dir_name)
-            print(name)
+            ##print(dir_name)
+            #print(name)
             print(os.path.join(dir_name, name))
             filename = os.path.join(dir_name, name)
             if os.path.isfile(filename):
@@ -259,6 +263,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                     print("---2---")
 
                     diff = time_now_in_ms - epoch
+                    print ("diff:"  + str(diff))
                     if diff >=0:
                         if self._ctx.min_time_diff == -1:
                             print("---3---")

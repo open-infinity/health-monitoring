@@ -8,7 +8,7 @@ class Config(object):
         config = ConfigParser.SafeConfigParser()
         config.read(conf_file)
 
-        hm_root = config.get('hm', 'root')
+        self.hm_root = config.get('hm', 'root')
 
         self.node_mode = config.get('node', 'mode')
         self.node_log_level = config.get('node', 'log_level')

@@ -65,7 +65,8 @@ def test_dead_node_scanner_node_changed_to_dead():
         ctx.this_node = nodechecker.node.Node(ip_address='4.4.4.4', port=11911, hostname='n4')
         ctx.node_list = [n1, n2, n3, ctx.this_node]    
         ctx.active_node_list = [n1, n2, n3, ctx.this_node]
-        ctx.dead_node_set = None
+        ctx.dead_node_set = set()
+        ctx.dead_node_set.add('127.0.0.1')
         ctx.conf = nodechecker.config.Config(os.path.join(curr_dir, 'nodechecker.conf'))
         #ctx.conf.hm_root = os.path.join(curr_dir_parent_2, "data")
         ctx.dead_node_timeout = 10
@@ -75,6 +76,9 @@ def test_dead_node_scanner_node_changed_to_dead():
             
         dead_node_scanner = nodechecker.timer.DeadNodeScanner(ctx)
         dead_node_scanner._node_state = MagicMock(return_value="CHANGED_TO_DEAD")
+        dead_node_scanner._start_node_creation_verifier = MagicMock()
+        dead_node_scanner._process_active_node_list_change = MagicMock()
+        ctx.ntf_manager = MagicMock()
         '''
         with patch('threading.Timer') as mock:
         ...     instance = mock.return_value
@@ -93,7 +97,8 @@ def test_dead_node_scanner_node_changed_to_dead():
         
         #assert dead_node_scanner.isAlive() is False
         #assert len(pending_timers_list) == 0
-        assert len(ctx.new_dead_node_set) == 1
+        print("len:" + str(len(ctx.new_dead_node_set)))
+        assert len(ctx.new_dead_node_set) == 3
 
 
 def test_node_state():
@@ -128,6 +133,7 @@ def test_node_state():
     assert "NOT_CHANGED" == dead_node_scanner._node_state(rrd_data_path, last_update + ctx.dead_node_timeout + 1, True)
     assert "CHANGED_TO_ALIVE" == dead_node_scanner._node_state(rrd_data_path, last_update + ctx.dead_node_timeout - 1 , True)
     assert "NOT_CHANGED" == dead_node_scanner._node_state(rrd_data_path, last_update + ctx.dead_node_timeout - 1 , False)
+    assert "CHANGED_TO_DEAD" == dead_node_scanner._node_state("", last_update + ctx.dead_node_timeout + 1, False)    
 
 
 def test_find_minimal_rrd_timestamp():

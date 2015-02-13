@@ -28,7 +28,7 @@ def setup():
 
 def test_send_receive_heartbeats():
     global resource_lock, ctx
-    send_period_sec = 0.001
+    send_period_sec = 0.01
 
     # Setup
     listener_node = nodechecker.node.Node(ip_address='5.5.5.5', port=11111)

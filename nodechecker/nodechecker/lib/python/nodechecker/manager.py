@@ -29,8 +29,9 @@ class Manager(threading.Thread):
         self._dead_node_scanner = timer.DeadNodeScanner(self._ctx)
 
     def run(self):
+        self._continue = True
         self._udp_listener.start()
-        self._update_node_collections(self._ctx.node_list)
+        self._sync_collections(self._ctx.node_list)
         self._loop_forever()
         # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager.run() ')
 
@@ -95,7 +96,6 @@ class Manager(threading.Thread):
             # In case that there is enough or too many masters, become
             # slave
             else:
-                print("bcme slave")
                 self._become_a_slave()
 
         except:
@@ -180,6 +180,8 @@ class Manager(threading.Thread):
 
             self._ctx.node_manager.configure_node_as_master(self._ctx.this_node.ip_address)
             print("_become_a_master store_list_to_file")
+            
+            # master nodes use active_node_list file
             util.store_list_to_file(self._ctx.active_node_list, self._ctx.active_node_list_file,
                                     self._ctx.this_node.group_name)
             print("_become_a_master exiting if")
@@ -188,6 +190,7 @@ class Manager(threading.Thread):
         print("_become_a_master _master_loop")
         self._master_loop()
         print("_become_a_master EXIT")
+        print(self._ctx.this_node.role)
 
     def _become_a_slave(self):
         self._logger.info("Trying to become a SLAVE")
@@ -198,7 +201,7 @@ class Manager(threading.Thread):
             if self._ctx.master_list:
                 self._assign_master(self._ctx.master_list[0])
             else:
-                util.log_message("Unable to set a master for the node", sys.exc_info())
+                util.log_message("Unable to set a master for the node, master list empty", sys.exc_info())
                 self.shutdown()
 
         self._slave_loop(self._ctx.node_list)
@@ -239,8 +242,8 @@ class Manager(threading.Thread):
 
             # 2) Read node list file, update own node collections if needed
             self._ctx.resource_lock.acquire()
-            print("_master_loop _update_node_collections")
-            node_list_changed = self._update_node_collections(self._ctx.node_list)[0]
+            print("_master_loop _sync_collections")
+            node_list_changed = self._sync_collections(self._ctx.node_list)[0]
 
             # 3) Process notifications
             #mail_sender.send_notifications(ntf_reader.get_notifications(node_list))
@@ -257,13 +260,13 @@ class Manager(threading.Thread):
             self._ctx.resource_lock.release()
 
         # Can not continue as master
-        self._become_a_slave()
+        if self._continue: self._become_a_slave()
 
     def _slave_loop(self, a_node_list):
         self._logger.info("Slave Loop start")
         while self._continue:
             try:
-                self._update_node_collections(a_node_list)
+                self._sync_collections(a_node_list)
                 if self._get_master_count(2) == "TOO_LOW":
                     break
             except:
@@ -288,7 +291,7 @@ class Manager(threading.Thread):
                     self._logger.debug("Sleep")
                     total_sleep_time += self._ctx.CMT_CONF_WAIT
                     if total_sleep_time >= self._ctx.MAX_CMT_CONF_WAIT:
-                        util.log_exception(sys.exc_info(), "This is boring, bye.")
+                        util.log_exception("Waiting for machine configurtion took too long")
                         self.shutdown()
                     time.sleep(self._ctx.CMT_CONF_WAIT)
                 else:
@@ -297,7 +300,14 @@ class Manager(threading.Thread):
                     time.sleep(self._ctx.CMT_CONF_WAIT)
                     break
 
-    def _update_node_collections(self, a_node_list):
+    ''' 
+    Update active_node_list based on freshly read nodelist.conf file.
+    That file is updated by admin or puppet master, which know what nodes
+    should be in the cluster
+    
+    Returns freshly read node_list and the flag if active noode list changed
+    '''
+    def _sync_collections(self, a_node_list):
         """Read a_node_list, and update active_node_list and dead_node_list,
         if needed"""
 
@@ -305,6 +315,7 @@ class Manager(threading.Thread):
             a_node_list[:] = self._ctx.nodelist_reader.read_node_list(self._ctx.this_node, self._ctx.mode)
 
             # Check if cluster scaled out, or just created
+            # Fetch new nodes and add them to active_node_list
             nodes = [n for n in a_node_list if n not in self._ctx.active_node_list and
                      n.ip_address not in self._ctx.dead_node_set]
             for m in nodes:
@@ -315,21 +326,27 @@ class Manager(threading.Thread):
                 active_nodes_changed = False
 
             # Check if cluster scaled in
+            # Remove node from active_node_list, if the node is not present any more
+            # in the cluster
             nodes = [n for n in self._ctx.active_node_list if n not in a_node_list]
             for m in nodes:
                 self._ctx.active_node_list.remove(m)
             if nodes:
                 active_nodes_changed = True
-
+            
+            # Remove node from dead_node_set, if the node if the node is not present any more
+            # in the cluster
             nodes = [ip for ip in self._ctx.dead_node_set
                      if not util.find_node_by_ip(ip, a_node_list)]
             for m in nodes:
                 self._ctx.dead_node_set.remove(m)
+                
         except ValueError:
             util.log_exception(sys.exc_info())
 
         return active_nodes_changed, a_node_list
 
+    # TODO: who should use this?
     def _set_master(self):
         if not self._ctx.node_list:
             util.log_exception(sys.exc_info(), "Unable to set a master for the node")

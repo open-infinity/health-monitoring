@@ -20,8 +20,9 @@ def setup_package():
 
     # Create config file reader
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    conf_file = os.path.join(test_dir, 'nodechecker.conf')
-    conf = nodechecker.config.Config(conf_file)
+    p1_dir = os.path.abspath(os.path.join(test_dir, os.pardir))
+    p2_dir = os.path.abspath(os.path.join(p1_dir, os.pardir))
+    conf = nodechecker.config.Config(os.path.join(p2_dir, 'conf', 'nodechecker', 'etc', 'nodechecker.conf'))
 
     # Create mock node_manager
     node_manager = nodechecker.control.nodemanager.NodeManager(conf)
@@ -40,11 +41,12 @@ def setup_package():
     collectd_home = os.path.join(conf.hm_root, conf.collectd_home)
     pound_home = os.path.join(conf.hm_root, conf.pound_home)
     rrd_http_server_home = os.path.join(conf.hm_root, conf.rrd_http_server_home)
+    notifications_home = os.path.join(nodechecker_home, conf.notifications_home_dir, conf.notifications_inbox_dir)
 
-    create_tree(test_dir, nodechecker_home, collectd_home, pound_home, rrd_http_server_home)
+    create_tree(test_dir, nodechecker_home, collectd_home, pound_home, rrd_http_server_home, notifications_home)
 
 
-def create_tree(test_dir, nodechecker_home, collectd_home, pound_home, rrd_http_server_home):
+def create_tree(test_dir, nodechecker_home, collectd_home, pound_home, rrd_http_server_home, notifications_home):
     # traverse 5 levels up in directory tree, to nodechecker root dir
     # TODO: is there some search functcion available? implement one if not
     p1_dir = os.path.abspath(os.path.join(test_dir, os.pardir))
@@ -63,6 +65,7 @@ def create_tree(test_dir, nodechecker_home, collectd_home, pound_home, rrd_http_
         os.makedirs(rrd_http_server_home)
         etc_dir = os.path.join(test_dir, 'data', 'hm_root', 'nodechecker', 'etc')
         shutil.copytree(etc_dir, os.path.join(nodechecker_home, 'etc'))
+        os.makedirs(notifications_home)
     except:
         print(sys.exc_info())
         

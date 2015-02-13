@@ -39,7 +39,9 @@ def test_dead_node_scanner_start_stop_with_node_creation_verifiers():
     ctx.node_list = [n1, n2, n3, ctx.this_node]
 
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    ctx.conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
+    p1_dir = os.path.abspath(os.path.join(test_dir, os.pardir))
+    p2_dir = os.path.abspath(os.path.join(p1_dir, os.pardir))
+    ctx.conf = nodechecker.config.Config(os.path.join(p2_dir, 'conf', 'nodechecker', 'etc', 'nodechecker.conf'))
     ctx.NODE_CREATION_TIMEOUT = 10
 
     ctx.ntf_manager = MagicMock()
@@ -49,7 +51,8 @@ def test_dead_node_scanner_start_stop_with_node_creation_verifiers():
 
     dead_node_scanner.start()
     time.sleep(ctx.dead_node_timeout * 10)
-    pending_timers_list = dead_node_scanner.cancel()
+    dead_node_scanner.cancel()
+    pending_timers_list = dead_node_scanner.node_creation_verifier_list
     dead_node_scanner.join()
     assert dead_node_scanner.isAlive() is False
     assert len(pending_timers_list) == 0

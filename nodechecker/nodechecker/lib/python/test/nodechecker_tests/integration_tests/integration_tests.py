@@ -9,6 +9,7 @@ import nodechecker.main
 import nodechecker.control.servicemanager
 from mock import MagicMock
 from datetime import datetime
+import time
 import signal
 
 node_manager = None
@@ -20,7 +21,10 @@ def setup_module():
 
     # Create config file reader
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
+
+    p1_dir = os.path.abspath(os.path.join(test_dir, os.pardir))
+    p2_dir = os.path.abspath(os.path.join(p1_dir, os.pardir))
+    conf = nodechecker.config.Config(os.path.join(p2_dir, 'conf', 'nodechecker', 'etc', 'nodechecker.conf'))
 
     # Create mock node_manager
     node_manager = nodechecker.control.nodemanager.NodeManager(conf)
@@ -37,6 +41,13 @@ def setup_module():
 
 def teardown_module():
     pass
+
+
+def test_start_stop():
+    global node_manager, conf
+    nodechecker.main.start(conf, node_manager)
+    nodechecker.main.stop()
+    assert 1 == 1
 
 
 def est_start_and_become_master():

@@ -6,7 +6,7 @@ import sys
 import nodechecker.util
 
 import mailer
-import logger
+import logging
 import snmp
 import notification
 
@@ -19,8 +19,9 @@ class NotificationManager(object):
         self.node = node
         self.mail_sender = self.create_mail_sender()
         self.snmp_trap_sender = self.create_snmp_trap_sender()
-        self.notification_logger = logger. \
-            NotificationLogger(self.conf, self.node)
+        self.notification_logger = logging.getLogger('nodechecker.notifications')
+        #self.notification_logger = logger. \
+        #    NotificationLogger(self.conf, self.node)
 
     def process_notifications(self, notification_list):
         try:

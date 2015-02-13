@@ -20,7 +20,7 @@ class RepeatingThreadSafeTimer(threading.Thread):
     def run(self):
         while True:
             now = time.strftime("%H:%M:%S:%MS", time.localtime())
-            print(now + "...timer waiting" )
+            print(now + "...timer waiting")
 
             self.finished.wait(self.interval)
 
@@ -64,7 +64,7 @@ class HeartBeatSender(RepeatingThreadSafeTimer):
 
 class DeadNodeScanner(RepeatingThreadSafeTimer):
     def __init__(self, ctx, args=[], kwargs={}):
-        self._node_creation_verifier_list = []
+        self.node_creation_verifier_list = []
         self._ctx = ctx
         RepeatingThreadSafeTimer.__init__(self,
                                           self._ctx.resource_lock,
@@ -84,18 +84,18 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             return False
 
     def cancel(self):
-        if self._node_creation_verifier_list:
-            for t in self._node_creation_verifier_list:
+        if self.node_creation_verifier_list:
+            for t in self.node_creation_verifier_list:
                 t.cancel()
-            self._node_creation_verifier_list[:] = []
+            self.node_creation_verifier_list[:] = []
 
         self.finished.set()
-        return self._node_creation_verifier_list
+        #return self.node_creation_verifier_list
 
     def _remove_expired_timers(self):
-        for timer in self._node_creation_verifier_list:
+        for timer in self.node_creation_verifier_list:
             if not timer.isAlive:
-                self._node_creation_verifier_list.remove(timer)
+                self.node_creation_verifier_list.remove(timer)
 
     def _dead_node_scan(self):
         dead_node_list = []
@@ -177,7 +177,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                                                                      self.check_node_still_dead,
                                                                      [n])
                             node_creation_verifier.start()
-                            self._node_creation_verifier_list.append(node_creation_verifier)
+                            self.node_creation_verifier_list.append(node_creation_verifier)
                     if found_resurrected_node:
                         #print("..12..")
                         # logger.info("Found resurrected node, updating collections")

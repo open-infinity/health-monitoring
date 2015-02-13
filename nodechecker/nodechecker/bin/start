@@ -15,4 +15,4 @@ nc_home_dir = os.path.abspath(os.path.join(nc_bin_dir, os.pardir))
 conf = nodechecker.config.Config(os.path.join(nc_home_dir, 'etc', 'nodechecker.conf'))
 service_manager = nodechecker.control.servicemanager.ServiceManager(conf)
 
-service_manager.start_health_monitoring()
+service_manager.start_services()

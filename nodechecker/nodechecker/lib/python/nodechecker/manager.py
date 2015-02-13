@@ -19,7 +19,7 @@ import udp_listener
 class Manager(threading.Thread):
     def __init__(self, a_context):
         threading.Thread.__init__(self)
-        self._logger = logging.getLogger('nodechecker.loop')
+        self._logger = logging.getLogger('nodechecker.manager')
         self._ctx = a_context
         self._continue = True
         self._udp_listener = udp_listener.UDPSocketListener(self._ctx)
@@ -30,12 +30,15 @@ class Manager(threading.Thread):
 
     def run(self):
         self._udp_listener.start()
+        self._update_node_collections(self._ctx.node_list)
         self._loop_forever()
         # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager.run() ')
 
     def shutdown(self):
+        self._logger.debug("ENTER shutdown()")
         self._continue = False
         self._stop_workers()
+        self._logger.debug("EXIT shutdown()")
 
     def _loop_forever(self):
         index = 0
@@ -50,7 +53,7 @@ class Manager(threading.Thread):
         #print("Shutting down " + str(exc_info))
     '''
     def _stop_workers(self):
-        print("ENTER _stop_workers")
+        self._logger.debug("ENTER _stop_workers()")
         if self._hb_sender.isAlive():
             self._hb_sender.cancel()
             self._hb_sender.join()
@@ -62,6 +65,7 @@ class Manager(threading.Thread):
         if self._dead_node_scanner.isAlive():
             self._dead_node_scanner.cancel()
             self._dead_node_scanner.join()
+        self._logger.debug("EXIT _stop_workers()")
 
     def _master_election(self, index):
         print('_master_election ENTER')
@@ -95,8 +99,8 @@ class Manager(threading.Thread):
                 self._become_a_slave()
 
         except:
-            print("_master_election - shutdown " + str(sys.exc_info()))
-            util.log_message("Shutting down", sys.exc_info())
+            self._logger.debug("_master_election - shutdown")
+            util.log_message("_master_election - shutdown", sys.exc_info())
             self.shutdown()
 
         return new_index
@@ -263,8 +267,8 @@ class Manager(threading.Thread):
                 if self._get_master_count(2) == "TOO_LOW":
                     break
             except:
-                self.shutdown()
                 util.log_exception(sys.exc_info())
+                self.shutdown()
 
     # TODO who calls this?
     def _wait_for_machine_configured(self, file_reader):

@@ -16,7 +16,10 @@ def setup():
     node = nodechecker.node.Node(hostname='test1', port=10, cloud_zone='cloudzone1', ip_address_public='1.2.3.4',
                                      instance_id=1, cluster_id=1, machine_id=1)
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
+    p1_dir = os.path.abspath(os.path.join(test_dir, os.pardir))
+    p2_dir = os.path.abspath(os.path.join(p1_dir, os.pardir))
+    conf = nodechecker.config.Config(os.path.join(p2_dir, 'conf', 'nodechecker', 'etc', 'nodechecker.conf'))
+    #conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
     sender = nodechecker.notification.snmp.TrapSender(conf, node)
 
 

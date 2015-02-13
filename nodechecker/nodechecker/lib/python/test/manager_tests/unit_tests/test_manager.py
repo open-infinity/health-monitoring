@@ -10,7 +10,7 @@ import nodechecker.udp_listener
 from mock import MagicMock
 
 
-conf = None
+
 runtime = None
 resource_lock = None
 ctx = None
@@ -19,9 +19,9 @@ HB_PERIOD_IN_SEC = 0.001
 
 
 def setup():
-    global conf, resource_lock, ctx
+    global resource_lock, ctx
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
+    #conf = nodechecker.config.Config(os.path.join(test_dir, 'nodechecker.conf'))
     resource_lock = threading.RLock()
     this_node = nodechecker.node.Node()
     ctx = nodechecker.context.Context()
@@ -30,7 +30,7 @@ def setup():
 
 
 def test_master_election_become_master():
-    global conf, resource_lock, ctx
+    global resource_lock, ctx
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]    
@@ -55,7 +55,7 @@ def test_master_election_become_master():
     
     
 def test_master_election_become_slave():
-    global conf, resource_lock, ctx
+    global resource_lock, ctx
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]    
@@ -79,7 +79,7 @@ def test_master_election_become_slave():
 
 
 def test_get_master_count_with_role_master_and_0_master_hbs_received():
-    global conf, resource_lock, ctx
+    global resource_lock, ctx
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]  
@@ -99,7 +99,7 @@ def test_get_master_count_with_role_master_and_0_master_hbs_received():
 
 
 def test_get_master_count_with_role_slave_and_0_master_hbs_received():
-    global conf, resource_lock, ctx
+    global resource_lock, ctx
     print ("enter test_udp_listener_master_election")
 
     ctx.active_node_list = [ctx.this_node]  

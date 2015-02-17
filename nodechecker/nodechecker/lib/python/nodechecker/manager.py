@@ -23,8 +23,9 @@ class Manager(threading.Thread):
         self._ctx = a_context
         self._continue = True
         self._udp_listener = udp_listener.UDPSocketListener(self._ctx)
-        self._hb_sender = timer.HeartBeatSender(self._ctx.heartbeat_period,
-                                                [self._ctx])
+        #self._hb_sender = timer.HeartBeatSender(self._ctx.heartbeat_period,
+        #                                        [self._ctx])
+	self._hb_sender = None
 
         self._dead_node_scanner = timer.DeadNodeScanner(self._ctx)
 
@@ -43,19 +44,20 @@ class Manager(threading.Thread):
 
     def _loop_forever(self):
         index = 0
+	self._assign_master(self._ctx.this_node)
         while self._continue:
             index = self._master_election(index)
 
         # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager._loop_forever() ')
     '''
-    def _do_shutdown(self, exc_info=None, exit_status=1, message="Shutting down"):
+    def _do_shutdown(self, ex_info=None, exit_status=1, message="Shutting down"):
         self._stop_workers()
         util.log_message(message, exc_info)
         #print("Shutting down " + str(exc_info))
     '''
     def _stop_workers(self):
         self._logger.debug("ENTER _stop_workers()")
-        if self._hb_sender.isAlive():
+        if self._hb_sender and self._hb_sender.isAlive():
             self._hb_sender.cancel()
             self._hb_sender.join()
 
@@ -175,7 +177,11 @@ class Manager(threading.Thread):
             print("_become_a_master() starting _dead_node_scanner")
             self._dead_node_scanner.start()
             print("_become_a_master() starting _hb_sender")
+            self._hb_sender = timer.HeartBeatSender(self._ctx.heartbeat_period, [self._ctx])
             self._hb_sender.start()
+            print("****hbsender - role**" + self._hb_sender._ctx.this_node.role)
+            print("****hbsender - role**" + self._hb_sender._ctx.this_node.to_json())
+
             print("_become_a_master() configure_node_as_master")
 
             self._ctx.node_manager.configure_node_as_master(self._ctx.this_node.ip_address)

@@ -19,7 +19,7 @@ COLLECTD_MODE_CLIENT = 'client'
 COLLECTD_MODE_SERVER = 'server'
 COLLECTD_NETWORK_CONF_FILE = 'etc/collectd.d/network.conf'
 COLLECTD_RESTART_SCRIPT = 'sbin/restart.sh'
-POUND_CONFIG_TEMPLATE_FILE = 'var/share/pound/pound.cfg.tpl'
+#POUND_CONFIG_TEMPLATE_FILE = 'var/share/pound/pound.cfg.tpl'
 
 
 class NodeManager(object):
@@ -29,22 +29,25 @@ class NodeManager(object):
 
     def configure_node_as_master(self, own_ip):
         self.__configure_and_restart_collectd(own_ip, COLLECTD_MODE_SERVER)
-        subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.pound_home, STOP_SCRIPT)])
+        #subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.pound_home, STOP_SCRIPT)])
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.rrd_http_server_home, START_SCRIPT)])
 
     def configure_node_as_slave(self, own_ip, own_port, server_ip, server_port):
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.rrd_http_server_home, STOP_SCRIPT)])
         self.__configure_and_restart_collectd(server_ip, COLLECTD_MODE_CLIENT)
-        self.__configure_and_restart_pound(own_ip, own_port, server_ip, server_port)
+        #self.__configure_and_restart_pound(own_ip, own_port, server_ip, server_port)
 
     def __configure_and_restart_collectd(self, ip, mode):
+	print("__configure_and_restart_collectd ENTER")
         if mode not in [COLLECTD_MODE_CLIENT, COLLECTD_MODE_SERVER]:
             self.logger.error("Error configuring collectd")
+	    print("__configure_and_restart_collectd ERROR")
             return
         tpl_file = "var/share/collectd/%s.tpl" % (mode)
         src = os.path.join(self.conf.hm_root, self.conf.nodechecker_home, tpl_file)
         dst = os.path.join(self.conf.hm_root, self.conf.collectd_home, COLLECTD_NETWORK_CONF_FILE)
         temp = src + ".temp"
+	print("*******configuring collectd as " + mode)
         try:
             shutil.copyfile(src, temp)
             for line in fileinput.input(temp, inplace=1):
@@ -60,11 +63,13 @@ class NodeManager(object):
                         print line,
             shutil.copyfile(temp, dst)
         except:
+	    print("__configure_and_restart_collectd EXCEPTION")
             nodechecker.util.log_exception(sys.exc_info())
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root,
                                              self.conf.collectd_home,
                                              COLLECTD_RESTART_SCRIPT)])
-
+	print("__configure_and_restart_collectd EXIT")
+    '''	
     def __configure_and_restart_pound(self, own_ip, own_port, server_ip, server_port):
         global logger
         try:
@@ -87,4 +92,4 @@ class NodeManager(object):
         except:
             nodechecker.util.log_exception(sys.exc_info())
         subprocess.Popen(['sudo', os.path.join(self.conf.hm_root, self.conf.pound_home, RESTART_SCRIPT)])
-
+   '''

@@ -11,10 +11,10 @@ import nodechecker.main
 import daemon
 
 
-NODECHECKER_PID_FILE = 'var/run/oi3-nodechecker.pid'
+NODECHECKER_PID_FILE = 'nodechecker/var/run/oi3-nodechecker.pid'
 START_SCRIPT = "bin/start.sh"
 STOP_SCRIPT = "bin/stop.sh"
-COLLECTD_STOP_SCRIPT = 'sbin/restart.sh'
+COLLECTD_STOP_SCRIPT = 'sbin/stop.sh'
 SUDO = 'sudo'
 
 
@@ -45,9 +45,17 @@ class ServiceManager(object):
         self.nodechecker_daemon.start()
 
     def stop_services(self):
-        self.nodechecker_daemon.stop()
-        subprocess.Popen([SUDO, os.path.join(self.conf.collectd_home, COLLECTD_STOP_SCRIPT)])
-        subprocess.Popen([SUDO, os.path.join(self.conf.pound_home, STOP_SCRIPT)])
+        self.nodechecker_daemon = NodecheckerDaemon(self.pid_file,
+                                                    conf=self.conf,
+                                                    node_manager=self.node_manager,
+                                                    username=self.user)
+
+	self.nodechecker_daemon.stop()
+	subprocess.Popen([SUDO, os.path.join(self.conf.hm_root,
+                                             self.conf.collectd_home,
+                                             COLLECTD_STOP_SCRIPT)])
+
+        #subprocess.Popen([SUDO, os.path.join(self.conf.pound_home, STOP_SCRIPT)])
         subprocess.Popen([SUDO, os.path.join(self.conf.rrd_http_server_home, STOP_SCRIPT)])
 
 

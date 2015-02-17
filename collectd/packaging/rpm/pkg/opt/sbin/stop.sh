@@ -1,3 +1,3 @@
 #!/bin/bash
-service oi3-collectd stop
+service collectd stop
 

@@ -9,8 +9,9 @@
 . /etc/rc.d/init.d/functions
 
 # Open Infinity variables
-. /etc/profile.d/oi.sh
+#. /etc/profile.d/oi.sh
 
+OI_ROOT=/opt/openinfinity/3.1.0
 HOSTNAME=$(hostname)
 LOCKFILE=/var/lock/subsys/oi3-nodechecker
 HM_HOME=$OI_ROOT/healthmonitoring/nodechecker/bin

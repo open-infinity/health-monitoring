@@ -25,8 +25,8 @@ mkdir -p %{buildroot}%{_initddir}
 #cp -rf ./etc/init.d/oi3-collectd %{buildroot}%{_initddir}
 cp -rf ./etc/init.d/oi3-nodechecker %{buildroot}%{_initddir}
 
-mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
-cp -rf ./etc/profile.d/oi.sh.x86_64 %{buildroot}%{_sysconfdir}/profile.d/oi.sh
+#mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
+#cp -rf ./etc/profile.d/oi.sh.x86_64 %{buildroot}%{_sysconfdir}/profile.d/oi.sh
 
 mkdir -p %{installation_dir}/nodechecker/etc
 cp -rf ./opt/monitoring/* %{installation_dir}/nodechecker

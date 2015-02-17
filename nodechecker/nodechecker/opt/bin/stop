@@ -1,0 +1,18 @@
+#!/usr/bin/env python2
+
+import os
+import inspect
+import nodechecker.config
+import nodechecker.control.servicemanager
+
+# TODO: parse options and args, to allow custom path to config dir
+
+# by default, this script is at <health-monitoring-install-path>/nodechecker/bin/
+nc_bin_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+nc_home_dir = os.path.abspath(os.path.join(nc_bin_dir, os.pardir))
+
+# by default, nodechecker.conf is at <health-monitoring-install-path>/nodechecker/etc/
+conf = nodechecker.config.Config(os.path.join(nc_home_dir, 'etc', 'nodechecker.conf'))
+service_manager = nodechecker.control.servicemanager.ServiceManager(conf)
+
+service_manager.stop_services()

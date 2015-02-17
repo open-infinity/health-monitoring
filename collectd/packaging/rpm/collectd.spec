@@ -1,6 +1,6 @@
 
-Name:           oi3-collectd
-Version:        3.1.0
+Name:           collectd
+Version:        5.4.1
 Release:        10%{?dist}
 Summary:        Collectd configured for Open Infinity
 BuildArch:      x86_64
@@ -22,6 +22,7 @@ Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %global installation_path /opt/openinfinity/3.1.0/healthmonitoring
+%global installation_dir %{buildroot}/%{installation_path}
 
 %description
 Collectd configured for Open Infinity
@@ -30,42 +31,52 @@ Collectd configured for Open Infinity
 %setup -q
 
 %build
-./build.sh
-./configure --prefix %{installation_path}/collectd --enable-rrdtool --enable-debug --enable-java LDFLAGS='-Wl,-rpath,/usr/lib/jvm/jre-1.7.0/lib/amd64/server' JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.55.x86_64/
+./configure --prefix %{installation_path}/collectd --enable-rrdtool --enable-debug --enable-java LDFLAGS='-Wl,-rpath,/usr/lib/jvm/jre-1.7.0/lib/amd64/server' JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/
 make
 
 %install
 make install DESTDIR=%{buildroot}
+mkdir -p %{buildroot}%{_initddir}
+cp -rf ./pkg/etc/init.d/collectd %{buildroot}%{_initddir}
+mkdir -p %{installation_dir}/collectd
+cp -rf ./pkg/opt/* %{installation_dir}/collectd
 
 %clean
 
 %files
 %defattr(-,root,root,-)
-/%{installation_path}/collectd/
-%exclude %{installation_path}/collectd/etc/collectd.conf
+%{installation_path}/collectd/
+%{_initddir}/collectd
+#%exclude %{installation_path}/collectd/etc/collectd.conf
  
 %post
 useradd collectd > /dev/null 2>&1
 
-/sbin/chkconfig --add oi3-collectd
-/sbin/chkconfig oi3-collectd on
+/sbin/chkconfig --add collectd
+/sbin/chkconfig collectd on
 
 mkdir -p %{installation_path}/collectd/
 mkdir -p %{installation_path}/collectd/var/log/
 mkdir -p %{installation_path}/collectd/var/lib/collectd/rrd
 
 chown -R collectd /%{installation_path}/collectd
+chown -R collectd /%{installation_path}/collectd
+chown -R root /%{installation_path}/collectd/sbin
+
+chmod 775 /%{installation_path}/collectd/etc/collectd.d
+chmod 755 %{_initddir}/collectd
+
 
 %preun
 if [ "$1" = 0 ]; then
-   /sbin/chkconfig oi3-collectd off
-   /sbin/service oi3-collectd stop >/dev/null 2>&1
-   /sbin/chkconfig --del oi3-collectd
+   /sbin/chkconfig collectd off
+   /sbin/service collectd stop >/dev/null 2>&1
+   /sbin/chkconfig --del collectd
 fi
 
 %postun
 if [ "$1" -ge "1" ] ; then
-    /sbin/service oi3-collectd condrestart >/dev/null 2>&1 || :
+    /sbin/service collectd condrestart >/dev/null 2>&1 || :
     rm -rf %{installation_path}/collectd
 fi
 

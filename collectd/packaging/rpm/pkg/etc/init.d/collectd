@@ -10,11 +10,12 @@
 
 # Source function library.
 . /etc/init.d/functions
-. /etc/profile.d/oi.sh
+
 
 RETVAL=0
 ARGS=""
 prog="collectd"
+OI_ROOT=/opt/openinfinity/3.1.0
 CONFIG=$OI_ROOT/healthmonitoring/collectd/etc/collectd.conf
 COLLECTD_HOME=$OI_ROOT/healthmonitoring/collectd/sbin
 PIDFILE=$OI_ROOT/healthmonitoring/collectd/var/run/collectd.pid

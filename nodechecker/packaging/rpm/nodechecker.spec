@@ -22,7 +22,7 @@ components: rrd-http-server, collectd and pound.
 
 %install
 mkdir -p %{buildroot}%{_initddir}
-cp -rf ./etc/init.d/oi3-collectd %{buildroot}%{_initddir}
+#cp -rf ./etc/init.d/oi3-collectd %{buildroot}%{_initddir}
 cp -rf ./etc/init.d/oi3-nodechecker %{buildroot}%{_initddir}
 
 mkdir -p %{buildroot}%{_sysconfdir}/profile.d/
@@ -32,11 +32,11 @@ mkdir -p %{installation_dir}/nodechecker/etc
 cp -rf ./opt/monitoring/* %{installation_dir}/nodechecker
 cp -rf ./lib/python/nodechecker/nodechecker.conf %{installation_dir}/nodechecker/etc/
 
-mkdir -p %{installation_dir}/collectd
-cp -rf ./opt/collectd/* %{installation_dir}/collectd
+#mkdir -p %{installation_dir}/collectd
+#cp -rf ./opt/collectd/* %{installation_dir}/collectd
 
-mkdir -p %{installation_dir}/pound
-cp -rf ./opt/pound/* %{installation_dir}/pound
+#mkdir -p %{installation_dir}/pound
+#cp -rf ./opt/pound/* %{installation_dir}/pound
 
 mkdir -p %{installation_dir}/nodechecker/var/log
 mkdir -p %{installation_dir}/nodechecker/var/lib/notifications/inbox
@@ -54,11 +54,11 @@ cp -rf ./usr/local/bin/notify %{buildroot}/usr/local/bin/
 
 %files
 %defattr(-,root,root,-)
-%{_initddir}/oi3-collectd
+#%{_initddir}/oi3-collectd
 %{_initddir}/oi3-nodechecker
 %{_sysconfdir}/profile.d/oi.sh
 /%{installation_path}/nodechecker/
-/%{installation_path}/collectd
+#/%{installation_path}/collectd
 /%{installation_path}/pound/
 /usr/lib/python2.6/site-packages/nodechecker/
 /usr/local/bin/notify
@@ -66,15 +66,15 @@ cp -rf ./usr/local/bin/notify %{buildroot}/usr/local/bin/
 %post
 #TODO: move collectd config stuff to colelctd package
 useradd nodechecker > /dev/null 2>&1
-usermod -a -G collectd nodechecker  > /dev/null 2>&1
+#usermod -a -G collectd nodechecker  > /dev/null 2>&1
 mkdir -p /%{installation_path}/nodechecker/var/run
 
 chown -R nodechecker /%{installation_path}/nodechecker
 chown -R nodechecker /%{installation_path}/pound
 chown nodechecker /etc/pound.cfg
-chown -R collectd /%{installation_path}/collectd
-chown -R root /%{installation_path}/collectd/sbin
-chown -R root /%{installation_path}/pound/bin
+#chown -R collectd /%{installation_path}/collectd
+#chown -R root /%{installation_path}/collectd/sbin
+#chown -R root /%{installation_path}/pound/bin
 
 chmod 775 /%{installation_path}/collectd/etc/collectd.d
 chmod 755 %{_initddir}/oi3-collectd
@@ -101,8 +101,8 @@ exit 0
 #   1/sbin/service oi3-nodechecker condrestart >/dev/null 2>&1 || :
 #fi
 rm -rf /%{installation_path}/nodechecker
-rm -rf/%{installation_path}/collectd/etc
-rm -rf/%{installation_path}/collectd/share
+#rm -rf/%{installation_path}/collectd/etc
+#rm -rf/%{installation_path}/collectd/share
 
 %changelog
 * Mon Oct 27 2014 Version update <vbartoni@gmail.com> - 3.1.0-10

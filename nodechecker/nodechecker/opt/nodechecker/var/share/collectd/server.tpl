@@ -1,11 +1,15 @@
 LoadPlugin rrdtool
 LoadPlugin network
 
-<Plugin rrdtool>
-       DataDir "RRD_DATA_DIR"
+#<Plugin rrdtool>
+#       DataDir "RRD_DATA_DIR"
+#       CreateFilesAsync true
+#       CacheTimeout 0
+#       CacheFlush   10
+
 #       CacheTimeout 120
 #       CacheFlush   900
-</Plugin>
+#</Plugin>
 
 
 <Plugin network>

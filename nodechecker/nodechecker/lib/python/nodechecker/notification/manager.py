@@ -26,7 +26,7 @@ class NotificationManager(object):
     def process_notifications(self, notification_list):
         try:
             if notification_list:
-                self.notification_logger.log(notification_list)
+                self.notification_logger.debug(notification_list)
                 if self.mail_sender is not None:
                     self.mail_sender.send(notification_list)
                 if self.snmp_trap_sender is not None:
@@ -45,6 +45,7 @@ class NotificationManager(object):
                 if n.file_path:
                     os.rename(n.file_path, os.path.join(
                         self.conf.hm_root,
+			self.conf.nodechecker_home,
                         self.conf.notifications_home_dir,
                         self.conf.notifications_sent_dir,
                         n.file_name))

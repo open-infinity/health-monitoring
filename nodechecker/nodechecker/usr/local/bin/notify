@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TMP=$(mktemp --tmpdir=$OI_HEALTH_MONITORING_ROOT/var/lib/notifications/inbox)
+TMP=$(mktemp --tmpdir=/opt/openinfinity/3.1.0/healthmonitoring/nodechecker/var/lib/notifications/inbox)
 
 while read x y
 do

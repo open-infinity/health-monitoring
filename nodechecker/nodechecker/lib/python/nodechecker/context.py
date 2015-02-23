@@ -18,7 +18,7 @@ class Context(object):
         # Parameters
         self.BIG_TIME_DIFF = 1000000
         self.RRD_HTTP_SERVER_PORT = 8181
-        self.NODE_CREATION_TIMEOUT = 500
+        self.NODE_CREATION_TIMEOUT = 30
         self.MAX_BYTES_LOGFILE = 5000000
         self.MAX_CMT_CONF_WAIT = 600
         self.CMT_CONF_WAIT = 10
@@ -160,6 +160,8 @@ class Context(object):
         log_file_path = os.path.join(self.conf.hm_root, self.conf.nodechecker_home, self.log_file)
         handler = logging.handlers.RotatingFileHandler(
             log_file_path, maxBytes=self.MAX_BYTES_LOGFILE, backupCount=5)
+
+	print("****************************************log level "   + self.log_level)
         if self.log_level == "debug":
             self.logger.setLevel(logging.DEBUG)
         else:

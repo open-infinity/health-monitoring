@@ -27,7 +27,8 @@ class Manager(threading.Thread):
         #                                        [self._ctx])
 	self._hb_sender = None
 
-        self._dead_node_scanner = timer.DeadNodeScanner(self._ctx)
+        #self._dead_node_scanner = timer.DeadNodeScanner(self._ctx)
+        self._dead_node_scanner = None
 
     def run(self):
         self._continue = True
@@ -39,7 +40,8 @@ class Manager(threading.Thread):
     def shutdown(self):
         self._logger.debug("ENTER shutdown()")
         self._continue = False
-        self._stop_workers()
+        self._stop_master_workers()
+	self._stop_udp_listener()
         self._logger.debug("EXIT shutdown()")
 
     def _loop_forever(self):
@@ -51,24 +53,36 @@ class Manager(threading.Thread):
         # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager._loop_forever() ')
     '''
     def _do_shutdown(self, ex_info=None, exit_status=1, message="Shutting down"):
-        self._stop_workers()
+        self._st(op_workers()
         util.log_message(message, exc_info)
         #print("Shutting down " + str(exc_info))
     '''
-    def _stop_workers(self):
-        self._logger.debug("ENTER _stop_workers()")
+    def _stop_master_workers(self):
+        self._logger.debug("ENTER _stop_master_workers()")
+	self._logger.debug("Stopping hb_sender)")
         if self._hb_sender and self._hb_sender.isAlive():
+	    self._logger.debug("Stopping hb_sender ......")
             self._hb_sender.cancel()
             self._hb_sender.join()
+	    self._logger.debug("Stopping hb_sender DONE")
 
+        #if self._udp_listener.isAlive():
+        #    self._udp_listener.shutdown()
+        #    self._udp_listener.join()
+	
+	self._logger.debug("Stopping dead_node_scanner")
+        if self._dead_node_scanner and self._dead_node_scanner.isAlive():
+	    self._logger.debug("Stopping dead_node_scanner.....")
+            self._dead_node_scanner.cancel()
+            self._dead_node_scanner.join()
+            self._logger.debug("Stopping dead_node_scanner.....DONE")
+
+        self._logger.debug("EXIT _stop_master_workers()")
+    
+    def _stop_udp_listener(self):
         if self._udp_listener.isAlive():
             self._udp_listener.shutdown()
             self._udp_listener.join()
-
-        if self._dead_node_scanner.isAlive():
-            self._dead_node_scanner.cancel()
-            self._dead_node_scanner.join()
-        self._logger.debug("EXIT _stop_workers()")
 
     def _master_election(self, index):
         print('_master_election ENTER')
@@ -116,17 +130,17 @@ class Manager(threading.Thread):
             - In case of too big number of signals, if the node is a slave, it
             checks if it should itself run as a slave.
         """
-        print("_get_master_count ENTER")
+        self._logger.debug("_get_master_count ENTER")
 
         ret = "FINE"
         self._ctx.heartbeats_received = 0
         self._ctx.master_list[:] = []
 
         # Sleep, count masters when awake, then all your base are belong to us.
-        print("_get_master_count sleep")
+        self._logger.debug("_get_master_count sleep")
         time.sleep(heartbeat_periods * self._ctx.heartbeat_period)
         print("_get_master_count awake")
-        print("_get_master_count role: " + self._ctx.this_node.role)
+        self._logger.debug("_get_master_count role: " + self._ctx.this_node.role)
 
         self._ctx.resource_lock.acquire()
         try:
@@ -135,6 +149,8 @@ class Manager(threading.Thread):
             else:
                 expected_masters = 1
 
+            self._logger.debug("master list length:" + str(len(self._ctx.master_list)))
+	    self._logger.debug(" expected masters" + str(expected_masters))
             if len(self._ctx.master_list) < expected_masters:
                 ret = "TOO_LOW"
             elif len(self._ctx.master_list) > expected_masters:
@@ -147,11 +163,12 @@ class Manager(threading.Thread):
                 #        self.assign_master(self._ctx.master_list[0])
 
         except:
-            print("_get_master_count exception: " + sys.exc_info())
+            #print("_get_master_count exception: " + sys.exc_info())
+	    self._logger.debug("STRANGE")
             util.log_exception(sys.exc_info())
         finally:
             self._ctx.resource_lock.release()
-        print("_get_master_count EXIT returning " + str(ret))
+	self._logger.debug("_get_master_count EXIT returning " + str(ret))
         return ret
 
     def _assign_master(self, new_master):
@@ -175,7 +192,8 @@ class Manager(threading.Thread):
             self._ctx.this_node.role = "MASTER"
             self._logger.info("This node became a MASTER")
             print("_become_a_master() starting _dead_node_scanner")
-            self._dead_node_scanner.start()
+            self._dead_node_scanner = timer.DeadNodeScanner(self._ctx)
+	    self._dead_node_scanner.start()
             print("_become_a_master() starting _hb_sender")
             self._hb_sender = timer.HeartBeatSender(self._ctx.heartbeat_period, [self._ctx])
             self._hb_sender.start()
@@ -202,7 +220,7 @@ class Manager(threading.Thread):
         self._logger.info("Trying to become a SLAVE")
 
         if self._ctx.this_node.role == "MASTER":
-            self._stop_workers()
+            self._stop_master_workers()
             self._ctx.this_node.role = "SLAVE"
             if self._ctx.master_list:
                 self._assign_master(self._ctx.master_list[0])
@@ -276,6 +294,7 @@ class Manager(threading.Thread):
                 if self._get_master_count(2) == "TOO_LOW":
                     break
             except:
+		self._logger.debug('3')
                 util.log_exception(sys.exc_info())
                 self.shutdown()
 
@@ -348,6 +367,7 @@ class Manager(threading.Thread):
                 self._ctx.dead_node_set.remove(m)
                 
         except ValueError:
+            self._logger.debug('2')
             util.log_exception(sys.exc_info())
 
         return active_nodes_changed, a_node_list

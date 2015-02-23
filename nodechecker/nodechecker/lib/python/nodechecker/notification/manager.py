@@ -40,6 +40,7 @@ class NotificationManager(object):
             node_list, category))
 
     def move_processed_notifications(self, notification_list):
+	self.notification_logger.debug('ENTER')
         try:
             for n in notification_list:
                 if n.file_path:

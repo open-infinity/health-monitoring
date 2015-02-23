@@ -28,7 +28,7 @@ class UDPSocketListener(threading.Thread):
         #self.lock_resources = a_lock_resources
 
     def run(self):
-        print("Thread:" + str(thread.get_ident()) + ' ' + "ENTER UDPServer.run()")
+        self.logger.debug("Thread:" + str(thread.get_ident()) + ' ' + "ENTER UDPServer.run()")
 
         bind_to_address = "0.0.0.0"
         self._server = SocketServer.UDPServer((bind_to_address, self.ctx.this_node.port),
@@ -41,15 +41,15 @@ class UDPSocketListener(threading.Thread):
         #self._server.active_node_list = self.ctx.active_node_list
         #self._server.lock_resources = self.ctx.resource_lock
         self._server.serve_forever()
-        print("Thread:" + str(thread.get_ident()) + ' ' + "EXIT UDPServer.run")
+        self.logger.debug("Thread:" + str(thread.get_ident()) + ' ' + "EXIT UDPServer.run")
 
     def shutdown(self):
-        print("Thread:" + str(thread.get_ident()) + ' ' + "ENTER UDPSocketListener.shutdown()")
+        self.logger.debug("Thread:" + str(thread.get_ident()) + ' ' + "ENTER UDPSocketListener.shutdown()")
 
         if self._server:
             self.do_shutdown()
         else:
-            print("Thread:" + str(thread.get_ident()) + ' ' + "Waiting for server...")
+            self.logger.debug("Thread:" + str(thread.get_ident()) + ' ' + "Waiting for server...")
             time.sleep(5)
             self.do_shutdown()
 
@@ -66,13 +66,13 @@ class UDPSocketListener(threading.Thread):
         #    self._server.shutdown()
         #    self._server = None
         #    print("UDPServer is None")
-        print("Thread:" + str(thread.get_ident()) + ' ' + "EXIT UDPSocketListener.shutdown()")
+        self.logger.debug("Thread:" + str(thread.get_ident()) + ' ' + "EXIT UDPSocketListener.shutdown()")
 
     def do_shutdown(self):
-        print("Thread:" + str(thread.get_ident()) + ' ' + "ENTER UDPSocketListener.do_shutdown()")
+        self.logger.debug("Thread:" + str(thread.get_ident()) + ' ' + "ENTER UDPSocketListener.do_shutdown()")
         self._server.shutdown()
         self._server = None
-        print("Thread:" + str(thread.get_ident()) + ' ' + "EXIT UDPSocketListener.do_shutdown()")
+        self.logger.debug("Thread:" + str(thread.get_ident()) + ' ' + "EXIT UDPSocketListener.do_shutdown()")
 
 
 class UDPDataHandler(SocketServer.BaseRequestHandler):
@@ -83,7 +83,8 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         self.server.ctx.resource_lock.acquire()
-        try:
+        self.server.logger.debug("Received Data")
+	try:
             data = self.request[0].strip()
             json_object = json.loads(data)
 
@@ -105,7 +106,7 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
             self.server.ctx.resource_lock.release()
 
     def handle_heartbeat(self, json_object):
-        print ("ENTER handle_heartbeat")
+        #se ("ENTER handle_heartbeat")
         self.server.logger.debug("Received Heartbeat")
         tx_node = node.Node().from_dict(json_object[1])
         if tx_node != self.server.ctx.this_node:

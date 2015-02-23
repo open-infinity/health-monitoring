@@ -70,12 +70,12 @@ def send(this_node, to_nodes, data):
     print("ENTER send()")
     try:
         if len(to_nodes) > 0:
-            # _#logger.debug("Sending data %s" % str(data))
+            logger.debug("Sending data %s" % str(data))
             print("Sending data:" + str(data))
 
             for n in to_nodes:
                 if n != this_node:
-                    # _#logger.debug("Sending to node %s" % str(n.ip_address))
+                    logger.debug("Sending to node %s" % str(n.ip_address))
                     print("Sending to node:" + str(n.ip_address))
                     print("Sending to port:" + str(n.port))
 

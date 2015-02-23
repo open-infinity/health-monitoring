@@ -23,20 +23,20 @@ class MailSender(object):
 
     def send(self, notification_list):
         if notification_list:
-            try:
-                msg = email.mime.text.MIMEText(
-                    self.format_email_message(notification_list))
-                msg['Subject'] = self.conf.email_subject
-                msg['From'] = self.conf.email_from
-                msg['To'] = self.conf.email_to
-                s = smtplib.SMTP(self.conf.email_smpt_server)
-                s.sendmail(
-                    self.conf.email_from, self.conf.email_to,
-                    msg.as_string())
-                s.quit()
+            #try:
+            msg = email.mime.text.MIMEText(
+                self.format_email_message(notification_list))
+            msg['Subject'] = self.conf.email_subject
+            msg['From'] = self.conf.email_from
+            msg['To'] = self.conf.email_to
+            s = smtplib.SMTP(self.conf.email_smpt_server)
+            s.sendmail(
+                self.conf.email_from, self.conf.email_to,
+                msg.as_string())
+            s.quit()
                 #self.move_sent_items(notification_list)
-            except:
-                nodechecker.util.log_exception(sys.exc_info())
+            #except:
+            #    nodechecker.util.log_exception(sys.exc_info())
 
     # def process_node_status_alerts(self, node_list, category):
     #     notification_list = []

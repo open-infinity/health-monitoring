@@ -17,20 +17,6 @@ class MailSender(object):
         self.node = node
         self.logger = logging.getLogger('nodechecker.mailsender')
         self.logger.info('creating an instance of nodechecker.mailsender')
-        self.ascii_art = [self.eol,
-                          ' _____ ___    _    ____    _                _ _   _', self.eol,
-                          '|_   _/ _ \  / \  / ___|  | |__   ___  __ _| | |_| |__', self.eol,
-                          '  | || | | |/ _ \ \___ \  | \'_ \ / _ \/ _` | | __| \'_ \ ', self.eol,
-                          '  | || |_| / ___ \ ___) | | | | |  __/ (_| | | |_| | | |', self.eol,
-                          '  |_| \___/_/   \_\____/  |_| |_|\___|\__,_|_|\__|_| |_|', self.eol,
-                          self.eol,
-                          '                       _ _             _',
-                          ' _ __ ___   ___  _ __ (_) |_ ___  _ __(_)_ __   __ _', self.eol,
-                          '| \'_ ` _ \ / _ \| \'_ \| | __/ _ \| \'__| | \'_ \ / _` |', self.eol,
-                          '| | | | | | (_) | | | | | || (_) | |  | | | | | (_| |', self.eol,
-                          '|_| |_| |_|\___/|_| |_|_|\__\___/|_|  |_|_| |_|\__, |', self.eol,
-                          '                                               |___/ ', self.eol,
-                          self.eol]
 
     def send(self, notification_list):
         if notification_list:
@@ -53,8 +39,7 @@ class MailSender(object):
             notification_word = ' notifications'
         else:
             notification_word = ' notification'
-        msg_header_title = "".join(self.ascii_art)
-        msg_header = "".join([msg_header_title, 'This mail contains ', str(list_count),
+        msg_header = "".join(['This mail contains ', str(list_count),
                                       notification_word, " sent from Health monitoring master node at:"])
 
         # Sender host information

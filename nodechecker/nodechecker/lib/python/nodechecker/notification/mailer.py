@@ -41,7 +41,7 @@ class MailSender(object):
             # msg['From'] = self.conf.email_from
             msg['From'] = ''
             msg['To'] = self.conf.email_to
-            s = smtplib.SMTP(self.conf.email_smpt_server, self.conf.email_smpt_port)
+            s = smtplib.SMTP(self.conf.email_smtp_server, self.conf.email_smtp_port)
             s.login(self.conf.email_smtp_username, self.conf.email_smtp_password)
             s.sendmail('', self.conf.email_to, msg.as_string())
             s.quit()

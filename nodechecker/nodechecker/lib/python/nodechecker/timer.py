@@ -42,10 +42,10 @@ class RepeatingThreadSafeTimer(threading.Thread):
             else:
                 self.logger.dedub("finished is set")
                 break
-            self.logger.debug ("RepeatingThreadSafeTimer EXIT run ")
+            self.logger.debug("RepeatingThreadSafeTimer EXIT run ")
 
     def cancel(self):
-	self.logger.debug('ENTER cancel')
+        self.logger.debug('ENTER cancel')
         # print("..........finished")
         self.finished.set()
 
@@ -67,13 +67,13 @@ class HeartBeatSender(RepeatingThreadSafeTimer):
 class DeadNodeScanner(RepeatingThreadSafeTimer):
     def __init__(self, ctx, args=[], kwargs={}):
         self._node_creation_verifier_list = []
-	self.resurrected_node_list = []
+        self.resurrected_node_list = []
         self._ctx = ctx
         RepeatingThreadSafeTimer.__init__(self,
                                           self._ctx.resource_lock,
                                           self._ctx.dead_node_timeout,
                                           self._dead_node_scan, args, kwargs)
-        #self.logger=logging.getLogger('nodechecker.timer')
+        # self.logger=logging.getLogger('nodechecker.timer')
 
     # def process_node_resurrection(resurrected_node, active_nodes, dead_nodes):
     # TODO: change node uuid everwhere to ip+port
@@ -94,7 +94,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             self._node_creation_verifier_list[:] = []
 
         self.finished.set()
-	self.logger.debug('EXIT DeadNodeScanner cancel')
+        self.logger.debug('EXIT DeadNodeScanner cancel')
         return self._node_creation_verifier_list
 
     def _remove_expired_timers(self):
@@ -104,8 +104,8 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
 
     def _node_state(self, node_dir, at_time, known_as_dead):
         self.logger.debug('node dir:' + node_dir)
-	self.logger.debug('-------------->Get node state ENTER')
-	self.logger.debug('-------------->known_as_dead:' + str(known_as_dead))
+        self.logger.debug('-------------->Get node state ENTER')
+        self.logger.debug('-------------->known_as_dead:' + str(known_as_dead))
         self._ctx.min_time_diff = -1
         res = "NOT_CHANGED"
         if os.path.exists(node_dir):
@@ -118,16 +118,16 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             if diff >= self._ctx.dead_node_timeout and not known_as_dead:
                 print("..6..")
                 print (diff)
-               
+
                 # logger.debug("Found dead node %s" % n.hostname)
                 # logger.debug(
                 # "n.hostname = %s,dead_node_set=%s," \
                 # " known_as_dead %s, diff = %s "
-                #    % (n.hostname, self._ctx.dead_node_set, str(known_as_dead),
+                # % (n.hostname, self._ctx.dead_node_set, str(known_as_dead),
                 #       diff))
                 #found_new_dead_node = True
                 res = "CHANGED_TO_DEAD"
-                
+
 
             elif diff < self._ctx.dead_node_timeout and known_as_dead:
                 print("..7..")
@@ -135,7 +135,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                 # % n.hostname)
                 # logger.debug(
                 # "n.hostname = %s,dead_node_set=%s,known_as_dead %s," \
-                #    " diff = %s "
+                # " diff = %s "
                 #    % (n.hostname, self._ctx.dead_node_set, str(known_as_dead),
                 #       diff))
                 #found_resurrected_node = True
@@ -143,40 +143,42 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         elif not known_as_dead:
             res = "CHANGED_TO_DEAD"
         else:
-            #log
-            print("WARNING unexpected state")    
-        return res   
-            
+            # log
+            print("WARNING unexpected state")
+        return res
+
     def _dead_node_scan(self):
-	print('ENTER DEAD NODE SCAN**************************************')
-	self.logger.debug('***********************ENTER DEAD node scan')
-        #dead_node_list = []
+        print('ENTER DEAD NODE SCAN**************************************')
+        self.logger.debug('***********************ENTER DEAD node scan')
+        # dead_node_list = []
         self.resurrected_node_list = []
 
         self._remove_expired_timers()
         # self._ctx.resource_lock.acquire()
         try:
-            
+
             # Go through nodes, and check if some node's state changed.
             # Add dead and reborn nodes to appropriate lists
             for n in self._ctx.node_list:
                 if self._ctx.this_node.ip_address == n.ip_address:
                     print("---0---")
                     continue
-                path = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, n.hostname)
+                path = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home,
+                                    self._ctx.conf.collectd_rrd_dir, n.hostname)
                 node_state = "NOT_CHANGED"
-            
+
                 known_as_dead = n.ip_address in self._ctx.dead_node_set or n.ip_address in self._ctx.new_dead_node_set
-		for aaaa in self._ctx.dead_node_set:
-		    self.logger.debug("dead node node:"+ str(aaaa))
-                
-		for bbbb in self._ctx.new_dead_node_set:
-                    self.logger.debug("new dead node node:"+ str(bbbb))
+                for aaaa in self._ctx.dead_node_set:
+                    self.logger.debug("dead node node:" + str(aaaa))
+
+                for bbbb in self._ctx.new_dead_node_set:
+                    self.logger.debug("new dead node node:" + str(bbbb))
 
 
                 #print("n.ip_address, self._ctx.dead_node_set:" + n.ip_address self._ctx.dead_node_set)
                 node_state = self._node_state(path, time.mktime(time.localtime()), known_as_dead)
-		self.logger.debug("******************************node_state, n.ip_address, self._ctx.dead_node_set:" + node_state +  ',' +n.ip_address)
+                self.logger.debug(
+                    "******************************node_state, n.ip_address, self._ctx.dead_node_set:" + node_state + ',' + n.ip_address)
 
                 if node_state == "CHANGED_TO_DEAD":
                     print("---3---")
@@ -185,23 +187,23 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                         print("---4---")
                         self.logger.debug("Starting timed verification new dead node")
                         self._ctx.new_dead_node_set.add(n.ip_address)
-                        ncv = self._start_node_creation_verifier(n) 
-                        self._node_creation_verifier_list.append(ncv) 
-            
+                        ncv = self._start_node_creation_verifier(n)
+                        self._node_creation_verifier_list.append(ncv)
+
                 if node_state == "CHANGED_TO_ALIVE":
-                        print("---5---")
-                        # logger.info("Found resurrected node, updating collections")
-                        if self._process_node_resurrection(n):
-                            print("---6---")
-                            self.resurrected_node_list.append(n)
-              
+                    print("---5---")
+                    # logger.info("Found resurrected node, updating collections")
+                    if self._process_node_resurrection(n):
+                        print("---6---")
+                        self.resurrected_node_list.append(n)
+
             # After checking node's state, process lists if needed                
             #if dead_node_list:
             #   print("---7---")
             #   self._process_active_node_list_change()
             #   self._ctx.ntf_manager.process_node_status_alerts(
             #           dead_node_list, "DEAD_NODE")
-                            
+
             if self.resurrected_node_list:
                 print("---8---")
                 self._process_active_node_list_change()
@@ -218,30 +220,31 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         finally:
             pass
             #self._ctx.resource_lock.release()
-    
+
     '''
     This function is written to ease up testing, for timer creation mocking
     '''
+
     def _start_node_creation_verifier(self, node):
-	self.logger.debug('_start_node_creation_verifier ENTER')
-	self.logger.debug('self._ctx.NODE_CREATION_TIMEOUT')
-        ncv = threading.Timer(self._ctx.NODE_CREATION_TIMEOUT, self.check_node_still_dead,[node])
+        self.logger.debug('_start_node_creation_verifier ENTER')
+        self.logger.debug('self._ctx.NODE_CREATION_TIMEOUT')
+        ncv = threading.Timer(self._ctx.NODE_CREATION_TIMEOUT, self.check_node_still_dead, [node])
         ncv.start()
         self.logger.debug('_start_node_creation_verifier EXIT')
         return ncv
-    
-                                                                         
+
+
     def _process_active_node_list_change(self):
-        util.send(self._ctx.this_node, self._ctx.node_list, 
+        util.send(self._ctx.this_node, self._ctx.node_list,
                   util.json_from_list(self._ctx.active_node_list, 'active_node_list'))
-        util.store_list_to_file(self._ctx.active_node_list, 
-                                self._ctx.active_node_list_file, 
+        util.store_list_to_file(self._ctx.active_node_list,
+                                self._ctx.active_node_list_file,
                                 self._ctx.this_node.group_name)
-                                
+
     def check_node_still_dead(self, node):
         print(" **************************ENTER check_node_still_dead")
-	#ogger = logging.getLogger('nodechecker.ncv')
-	self.logger.debug('*****************************ENTER check_node_still_dead')
+        # ogger = logging.getLogger('nodechecker.ncv')
+        self.logger.debug('*****************************ENTER check_node_still_dead')
         # global active_node_list
         # global new_dead_node_set
         # global dead_node_set
@@ -249,17 +252,18 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
 
         # now = time.mktime(time.localtime())
         self.logger.debug("hm root" + self._ctx.conf.hm_root)
-        #path = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, n.hostname)
+        #path = os.path.join(self._ctx.conf.hm_root, self._
+        # ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, n.hostname)
 
-        path = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, node.hostname)
+        path = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir,
+                            node.hostname)
 
-        path1= os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir)
-        path2= os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home)
-#        path3= os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir, node.hostname)
-	self.logger.debug("path1" + path1)
+        path1 = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self._ctx.conf.collectd_rrd_dir)
+        path2 = os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home)
+        #        path3= os.path.join(self._ctx.conf.hm_root, self._ctx.conf.collectd_home, self.
+        # _ctx.conf.collectd_rrd_dir, node.hostname)
+        self.logger.debug("path1" + path1)
         self.logger.debug("path2" + path2)
-
-
 
         self._ctx.resource_lock.acquire()
         try:
@@ -267,13 +271,13 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             self.logger.debug("path" + path)
             os.path.walk(path, self.find_minimal_rrd_timestamp, [time.mktime(time.localtime())])
             diff = self._ctx.min_time_diff
-	    self.logger.debug("dif:" + str(diff))
-	    self.logger.debug("timeout" + str(self._ctx.dead_node_timeout))
-            if diff < self._ctx.dead_node_timeout:
-		self.logger.debug('check_node_still_dead() node is alive: Diff < self._ctx.dead_node_timeout')
+            self.logger.debug("dif:" + str(diff))
+            self.logger.debug("timeout" + str(self._ctx.dead_node_timeout))
+            if 0 < diff < self._ctx.dead_node_timeout:
+                self.logger.debug('check_node_still_dead() node is alive: Diff < self._ctx.dead_node_timeout')
                 pass
             else:
-		self.logger.debug('check_node_still_dead() NOde is dead' + node.ip_address)
+                self.logger.debug('check_node_still_dead() node is dead' + node.ip_address)
                 if node in self._ctx.active_node_list:
                     self._ctx.active_node_list.remove(node)
                 else:
@@ -283,7 +287,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                           self._ctx.node_list,
                           util.json_from_list(
                               self._ctx.active_node_list, 'active_node_list'))
-                
+
                 self.logger.debug("process node status alerts...")
                 self._ctx.ntf_manager.process_node_status_alerts([node], "DEAD_NODE")
 
@@ -291,8 +295,8 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
                 util.store_list_to_file(
                     self._ctx.active_node_list, self._ctx.active_node_list_file, self._ctx.this_node.group_name)
 
-	    #self.logger.debug("removing node from set of new dead...")
-            #self._ctx.new_dead_node_set.remove(node.ip_address)
+                #self.logger.debug("removing node from set of new dead...")
+                #self._ctx.new_dead_node_set.remove(node.ip_address)
         except:
             self.logger.debug("Star 3")
             util.log_exception(sys.exc_info())
@@ -300,7 +304,7 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
             pass
         finally:
             self._ctx.new_dead_node_set.remove(node.ip_address)
-	    #self.logger.debug("self._ctx.new_dead_node_set.remove" + str(len(self._ctx.new_dead_node_set)))
+            #self.logger.debug("self._ctx.new_dead_node_set.remove" + str(len(self._ctx.new_dead_node_set)))
             self._ctx.resource_lock.release()
         print(" exit check_node_still_dead")
 
@@ -313,34 +317,34 @@ class DeadNodeScanner(RepeatingThreadSafeTimer):
         # global min_time_diff
         for name in names:
             print("---0---")
-            ##print(dir_name)
+            # #print(dir_name)
             #print(name)
             #self.logger.debug("dir_name:" + dir_name)
             #self.logger.debug("name:" + name)
             print(os.path.join(dir_name, name))
             filename = os.path.join(dir_name, name)
             if os.path.isfile(filename):
-		#elf.logger.debug(filename + " IS file")
+                #elf.logger.debug(filename + " IS file")
                 print("---1---")
                 pipe = subprocess.Popen(
                     ['rrdtool', 'last', filename], stdout=subprocess.PIPE)
                 out = pipe.communicate()
                 epoch = int(out[0])
-		#self.logger.debug("epoch:" + str(epoch))
+                #self.logger.debug("epoch:" + str(epoch))
                 if epoch > 0:
                     print("---2---")
 
                     diff = time_now_in_ms - epoch
-		    #elf.logger.debug()
+                    #elf.logger.debug()
                     #self.logger.debug("diff:"  + str(diff))
-                    if diff >=0:
+                    if diff >= 0:
                         if self._ctx.min_time_diff == -1:
                             print("---3---")
                             self._ctx.min_time_diff = diff
-			    #self.logger.debug('+++++++3')
+                            #self.logger.debug('+++++++3')
                         elif self._ctx.min_time_diff > diff:
                             print("---4--")
-			    #self.logger.debug('+++++++++++++4')
+                            #self.logger.debug('+++++++++++++4')
                             self._ctx.min_time_diff = diff
                 else:
                     pass

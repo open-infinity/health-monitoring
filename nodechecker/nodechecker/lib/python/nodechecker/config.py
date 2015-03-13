@@ -39,6 +39,9 @@ class Config(object):
         self.email_from = config.get('email', 'from')
         self.email_to = config.get('email', 'to')
         self.email_smpt_server = config.get('email', 'smpt_server')
+        self.email_smpt_port = config.get('email', 'smpt_port')
+        self.email_smpt_username = config.get('email', 'smpt_username')
+        self.email_smpt_password = config.get('email', 'smpt_password')
 
         self.snmp_enabled = config.get('snmp', 'enabled')
         self.snmp_community_string = config.get('snmp', 'community_string')

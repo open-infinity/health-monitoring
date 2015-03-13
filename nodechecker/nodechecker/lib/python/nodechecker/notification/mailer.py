@@ -9,17 +9,6 @@ MSG_DELIMITER = '-----------------------------------------------' \
                 '------------------'
 
 
-
-
-#MSG_DELIMITER = ''\
-#"  __________  ___   _____    __               ____  __                             _ __             _                            __  _ _____            __  _"\
-#" /_  __/ __ \/   | / ___/   / /_  ___  ____ _/ / /_/ /_     ____ ___  ____  ____  (_) /_____  _____(_)___  ____ _   ____  ____  / /_(_) __(_)________ _/ /_(_)___  ____"\
-#  / / / / / / /| | \__ \   / __ \/ _ \/ __ `/ / __/ __ \   / __ `__ \/ __ \/ __ \/ / __/ __ \/ ___/ / __ \/ __ `/  / __ \/ __ \/ __/ / /_/ / ___/ __ `/ __/ / __ \/ __ \"\
-#" / / / /_/ / ___ |___/ /  / / / /  __/ /_/ / / /_/ / / /  / / / / / / /_/ / / / / / /_/ /_/ / /  / / / / / /_/ /  / / / / /_/ / /_/ / __/ / /__/ /_/ / /_/ / /_/ / / / /"\
-#"_/  \____/_/  |_/____/  /_/ /_/\___/\__,_/_/\__/_/ /_/  /_/ /_/ /_/\____/_/ /_/_/\__/\____/_/  /_/_/ /_/\__, /  /_/ /_/\____/\__/_/_/ /_/\___/\__,_/\__/_/\____/_/ /_/"\
-#"                                                                                                        /____/                                                          "\
-
-
 class MailSender(object):
     def __init__(self, conf, node):
         self.conf = conf
@@ -28,14 +17,28 @@ class MailSender(object):
         self.node = node
         self.logger = logging.getLogger('nodechecker.mailsender')
         self.logger.info('creating an instance of nodechecker.mailsender')
+        self.ascii_art = [self.eol,
+                          ' _____ ___    _    ____    _                _ _   _',
+                          '|_   _/ _ \  / \  / ___|  | |__   ___  __ _| | |_| |__',
+                          '  | || | | |/ _ \ \___ \  | \'_ \ / _ \/ _` | | __| \'_ \ ',
+                          '  | || |_| / ___ \ ___) | | | | |  __/ (_| | | |_| | | |',
+                          '  |_| \___/_/   \_\____/  |_| |_|\___|\__,_|_|\__|_| |_|',
+                          self.eol,
+                          '                       _ _             _',
+                          ' _ __ ___   ___  _ __ (_) |_ ___  _ __(_)_ __   __ _',
+                          '| \'_ ` _ \ / _ \| \'_ \| | __/ _ \| \'__| | \'_ \ / _` |',
+                          '| | | | | | (_) | | | | | || (_) | |  | | | | | (_| |',
+                          '|_| |_| |_|\___/|_| |_|_|\__\___/|_|  |_|_| |_|\__, |',
+                          '                                               |___/ ',
+                          self.eol]
 
     def send(self, notification_list):
         if notification_list:
-            #try:
+            # try:
             msg = email.mime.text.MIMEText(
                 self.format_email_message(notification_list))
             msg['Subject'] = self.conf.email_subject
-            #msg['From'] = self.conf.email_from
+            # msg['From'] = self.conf.email_from
             msg['From'] = ''
             msg['To'] = self.conf.email_to
             s = smtplib.SMTP(self.conf.email_smpt_server, self.conf.email_smpt_port)
@@ -50,8 +53,9 @@ class MailSender(object):
             notification_word = ' notifications'
         else:
             notification_word = ' notification'
-        msg_header = " ".join(['This mail contains ', str(list_count),
-                               notification_word, " sent from Health monitoring master node at:"])
+        msg_header = "".join(self.ascii_art)
+        msg_header = msg_header.join(['This mail contains ', str(list_count),
+                                      notification_word, " sent from Health monitoring master node at:"])
 
         # Sender host information
         sender_info = [self.eol, self.eol,

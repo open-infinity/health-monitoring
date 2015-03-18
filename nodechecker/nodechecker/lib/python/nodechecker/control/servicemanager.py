@@ -20,7 +20,7 @@ SUDO = 'sudo'
 
 class NodecheckerDaemon(daemon.Daemon):
     def run(self):
-        #node_manager = control.nodemanager.NodeManager(conf)
+        # node_manager = control.nodemanager.NodeManager(conf)
         nodechecker.main.start(self.conf, self.node_manager)
 
 
@@ -50,12 +50,12 @@ class ServiceManager(object):
                                                     node_manager=self.node_manager,
                                                     username=self.user)
 
-	self.nodechecker_daemon.stop()
-	subprocess.Popen([SUDO, os.path.join(self.conf.hm_root,
+        self.nodechecker_daemon.stop()
+        subprocess.Popen([SUDO, os.path.join(self.conf.hm_root,
                                              self.conf.collectd_home,
                                              COLLECTD_STOP_SCRIPT)])
 
-        #subprocess.Popen([SUDO, os.path.join(self.conf.pound_home, STOP_SCRIPT)])
+        # subprocess.Popen([SUDO, os.path.join(self.conf.pound_home, STOP_SCRIPT)])
         subprocess.Popen([SUDO, os.path.join(self.conf.rrd_http_server_home, STOP_SCRIPT)])
 
 

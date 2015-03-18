@@ -30,7 +30,7 @@ class NodeManager(object):
     def configure_node_as_master(self, own_ip):
         self.__configure_and_restart_collectd(own_ip, COLLECTD_MODE_SERVER)
         #subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.pound_home, STOP_SCRIPT)])
-        subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.rrd_http_server_home, START_SCRIPT)])
+        #subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.rrd_http_server_home, START_SCRIPT)])
 
     def configure_node_as_slave(self, own_ip, own_port, server_ip, server_port):
         subprocess.Popen([SUDO, os.path.join(self.conf.hm_root, self.conf.rrd_http_server_home, STOP_SCRIPT)])

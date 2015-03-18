@@ -234,9 +234,9 @@ class Manager(threading.Thread):
         """Returns True if a node should continue in master role"""
         try:
             ret = True
-            my_pos = self._ctx.active_node_list.index(self._ctx.this_node)
+            my_pos = self._ctx.node_list.index(self._ctx.this_node)
             for m in self._ctx.master_list:
-                master_pos = self._ctx.active_node_list.index(m)
+                master_pos = self._ctx.node_list.index(m)
                 if master_pos < my_pos:
                     ret = False
                     break
@@ -246,7 +246,6 @@ class Manager(threading.Thread):
             self._logger.debug("Master list: %s" % self._ctx.master_list)
             self._logger.debug("Master: %s" % m)
             util.log_exception(sys.exc_info())
-            print("_continue_as_master" + sys.exc_info())
         return ret
 
     def _master_loop(self):

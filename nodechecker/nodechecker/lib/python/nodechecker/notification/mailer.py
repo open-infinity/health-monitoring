@@ -2,7 +2,10 @@
 
 import smtplib
 import logging
+import nodechecker.util
 import email.mime.text
+import sys
+
 
 ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
 MSG_DELIMITER = '-----------------------------------------------' \
@@ -24,7 +27,6 @@ class MailSender(object):
             msg = email.mime.text.MIMEText(
                 self.format_email_message(notification_list))
             msg['Subject'] = self.conf.email_subject
-            # msg['From'] = self.conf.email_from
             msg['From'] = ''
             msg['To'] = self.conf.email_to
             s = smtplib.SMTP(self.conf.email_smtp_server, self.conf.email_smtp_port)
@@ -37,6 +39,8 @@ class MailSender(object):
                     s.sendmail('', self.conf.email_to, msg.as_string())
                     break
                 except:
+                    nodechecker.util.log_exception(sys.exc_info())
+                    self.logger.debug("Sending email failed, retrying...")
                     send_attempts += 1
             s.quit()
 

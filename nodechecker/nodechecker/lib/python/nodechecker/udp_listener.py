@@ -106,11 +106,9 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
             self.server.ctx.resource_lock.release()
 
     def handle_heartbeat(self, json_object):
-        #se ("ENTER handle_heartbeat")
         self.server.logger.debug("Received Heartbeat")
         tx_node = node.Node().from_dict(json_object[1])
         if tx_node != self.server.ctx.this_node:
-            print("2")
             self.server.ctx.heartbeats_received += 1
             if tx_node not in self.server.ctx.master_list:
                 self.server.ctx.master_list.append(tx_node)
@@ -120,7 +118,6 @@ class UDPDataHandler(SocketServer.BaseRequestHandler):
             for m in self.server.ctx.master_list:
                 self.server.logger.debug("name = %s" % m.hostname)
         else:
-            print("3")
             self.server.logger.debug("Received heartbeat from myself")
 
     def handle_active_node_list(self, json_object):

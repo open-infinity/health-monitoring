@@ -23,9 +23,9 @@ class Manager(threading.Thread):
         self._ctx = a_context
         self._continue = True
         self._udp_listener = udp_listener.UDPSocketListener(self._ctx)
-        #self._hb_sender = timer.HeartBeatSender(self._ctx.heartbeat_period,
+        # self._hb_sender = timer.HeartBeatSender(self._ctx.heartbeat_period,
         #                                        [self._ctx])
-	self._hb_sender = None
+        self._hb_sender = None
 
         #self._dead_node_scanner = timer.DeadNodeScanner(self._ctx)
         self._dead_node_scanner = None
@@ -41,44 +41,46 @@ class Manager(threading.Thread):
         self._logger.debug("ENTER shutdown()")
         self._continue = False
         self._stop_master_workers()
-	self._stop_udp_listener()
+        self._stop_udp_listener()
         self._logger.debug("EXIT shutdown()")
 
     def _loop_forever(self):
         index = 0
-	self._assign_master(self._ctx.this_node)
+        self._assign_master(self._ctx.this_node)
         while self._continue:
             index = self._master_election(index)
 
-        # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager._loop_forever() ')
+            # print("Thread:" + str(thread.get_ident()) + ' ' + 'EXIT Manager._loop_forever() ')
+
     '''
     def _do_shutdown(self, ex_info=None, exit_status=1, message="Shutting down"):
         self._st(op_workers()
         util.log_message(message, exc_info)
         #print("Shutting down " + str(exc_info))
     '''
+
     def _stop_master_workers(self):
         self._logger.debug("ENTER _stop_master_workers()")
-	self._logger.debug("Stopping hb_sender)")
+        self._logger.debug("Stopping hb_sender)")
         if self._hb_sender and self._hb_sender.isAlive():
-	    self._logger.debug("Stopping hb_sender ......")
+            self._logger.debug("Stopping hb_sender ......")
             self._hb_sender.cancel()
             self._hb_sender.join()
-	    self._logger.debug("Stopping hb_sender DONE")
+            self._logger.debug("Stopping hb_sender DONE")
 
-        #if self._udp_listener.isAlive():
+        # if self._udp_listener.isAlive():
         #    self._udp_listener.shutdown()
         #    self._udp_listener.join()
-	
-	self._logger.debug("Stopping dead_node_scanner")
+
+        self._logger.debug("Stopping dead_node_scanner")
         if self._dead_node_scanner and self._dead_node_scanner.isAlive():
-	    self._logger.debug("Stopping dead_node_scanner.....")
+            self._logger.debug("Stopping dead_node_scanner.....")
             self._dead_node_scanner.cancel()
             self._dead_node_scanner.join()
             self._logger.debug("Stopping dead_node_scanner.....DONE")
 
         self._logger.debug("EXIT _stop_master_workers()")
-    
+
     def _stop_udp_listener(self):
         if self._udp_listener.isAlive():
             self._udp_listener.shutdown()
@@ -102,7 +104,7 @@ class Manager(threading.Thread):
             # If there is not enough of masters, and own ranking on the list
             # equals index, then become master
             if count == "TOO_LOW":
-                print ("too low")
+                print("too low")
                 if index == my_pos:
                     print("'_master_election _become_a_master")
                     self._become_a_master()
@@ -150,7 +152,7 @@ class Manager(threading.Thread):
                 expected_masters = 1
 
             self._logger.debug("master list length:" + str(len(self._ctx.master_list)))
-	    self._logger.debug(" expected masters" + str(expected_masters))
+            self._logger.debug(" expected masters" + str(expected_masters))
             if len(self._ctx.master_list) < expected_masters:
                 ret = "TOO_LOW"
             elif len(self._ctx.master_list) > expected_masters:
@@ -158,22 +160,22 @@ class Manager(threading.Thread):
             else:
                 ret = "FINE"
 
-                #if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
+                # if self._ctx.this_node.role == "SLAVE" and self._ctx.master_list:
                 #    if self._ctx.my_master not in self._ctx.master_list:
                 #        self.assign_master(self._ctx.master_list[0])
 
         except:
-            #print("_get_master_count exception: " + sys.exc_info())
-	    self._logger.debug("STRANGE")
+            # print("_get_master_count exception: " + sys.exc_info())
+            self._logger.debug("STRANGE")
             util.log_exception(sys.exc_info())
         finally:
             self._ctx.resource_lock.release()
-	self._logger.debug("_get_master_count EXIT returning " + str(ret))
+        self._logger.debug("_get_master_count EXIT returning " + str(ret))
         return ret
 
     def _assign_master(self, new_master):
         # global my_master, node_manager
-        self._logger.info("Configuring node name %s as a SLAVE, master name is %s"
+        self._logger.info("Setting node %s configuration to SLAVE, master name is %s"
                           % (self._ctx.this_node.hostname, new_master.hostname))
         self._ctx.my_master = new_master
         self._ctx.node_manager.configure_node_as_slave(
@@ -193,7 +195,7 @@ class Manager(threading.Thread):
             self._logger.info("This node became a MASTER")
             print("_become_a_master() starting _dead_node_scanner")
             self._dead_node_scanner = timer.DeadNodeScanner(self._ctx)
-	    self._dead_node_scanner.start()
+            self._dead_node_scanner.start()
             print("_become_a_master() starting _hb_sender")
             self._hb_sender = timer.HeartBeatSender(self._ctx.heartbeat_period, [self._ctx])
             self._hb_sender.start()
@@ -204,7 +206,7 @@ class Manager(threading.Thread):
 
             self._ctx.node_manager.configure_node_as_master(self._ctx.this_node.ip_address)
             print("_become_a_master store_list_to_file")
-            
+
             # master nodes use active_node_list file
             util.store_list_to_file(self._ctx.active_node_list, self._ctx.active_node_list_file,
                                     self._ctx.this_node.group_name)
@@ -251,14 +253,14 @@ class Manager(threading.Thread):
     def _master_loop(self):
         # global node_list
         # global active_node_list
-        #global dead_node_set
+        # global dead_node_set
         print("_master_loop ENTER")
         self._logger.info("Master Loop start")
 
         while self._continue:
             print("_master_loop while loop start")
 
-            # 1) Check number of masters
+            # 1) Check number of masters - this includes sleeping
             if self._get_master_count(1) == "TOO_HIGH":
                 if not self._continue_as_master():
                     break
@@ -292,8 +294,9 @@ class Manager(threading.Thread):
                 self._sync_collections(a_node_list)
                 if self._get_master_count(2) == "TOO_LOW":
                     break
+                if self._ctx.my_master != self._ctx.master_list[0]:
+                    self._assign_master(self._ctx.master_list[0])
             except:
-		self._logger.debug('3')
                 util.log_exception(sys.exc_info())
                 self.shutdown()
 
@@ -331,6 +334,7 @@ class Manager(threading.Thread):
     
     Returns freshly read node_list and the flag if active noode list changed
     '''
+
     def _sync_collections(self, a_node_list):
         """Read a_node_list, and update active_node_list and dead_node_list,
         if needed"""
@@ -357,14 +361,14 @@ class Manager(threading.Thread):
                 self._ctx.active_node_list.remove(m)
             if nodes:
                 active_nodes_changed = True
-            
+
             # Remove node from dead_node_set, if the node if the node is not present any more
             # in the cluster
             nodes = [ip for ip in self._ctx.dead_node_set
                      if not util.find_node_by_ip(ip, a_node_list)]
             for m in nodes:
                 self._ctx.dead_node_set.remove(m)
-                
+
         except ValueError:
             self._logger.debug('2')
             util.log_exception(sys.exc_info())

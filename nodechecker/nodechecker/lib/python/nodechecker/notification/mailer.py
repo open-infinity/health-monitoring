@@ -5,6 +5,7 @@ import logging
 import nodechecker.util
 import email.mime.text
 import sys
+import time
 
 
 ENV_HM_HOME_DIR = "OI_HEALTH_MONITORING_ROOT"
@@ -42,6 +43,7 @@ class MailSender(object):
                     nodechecker.util.log_exception(sys.exc_info())
                     self.logger.debug("Sending email failed, retrying...")
                     send_attempts += 1
+                    time.sleep(5)
             s.quit()
 
     def format_email_message(self, notification_list):

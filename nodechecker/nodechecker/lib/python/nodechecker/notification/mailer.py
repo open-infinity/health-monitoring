@@ -30,12 +30,12 @@ class MailSender(object):
             msg['Subject'] = self.conf.email_subject
             msg['From'] = ''
             msg['To'] = self.conf.email_to
-            s = smtplib.SMTP(self.conf.email_smtp_server, self.conf.email_smtp_port)
 
             # Retry if sending fails
             send_attempts = 0
             while send_attempts < 5:
                 try:
+                    s = smtplib.SMTP(self.conf.email_smtp_server, self.conf.email_smtp_port)
                     s.login(self.conf.email_smtp_username, self.conf.email_smtp_password)
                     s.sendmail('', self.conf.email_to, msg.as_string())
                     break
@@ -44,7 +44,8 @@ class MailSender(object):
                     self.logger.debug("Sending email failed, retrying...")
                     send_attempts += 1
                     time.sleep(5)
-            s.quit()
+                finally:
+                    s.quit()
 
     def format_email_message(self, notification_list):
         # Message header

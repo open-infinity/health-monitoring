@@ -28,8 +28,16 @@ class MailSender(object):
             msg['From'] = ''
             msg['To'] = self.conf.email_to
             s = smtplib.SMTP(self.conf.email_smtp_server, self.conf.email_smtp_port)
-            s.login(self.conf.email_smtp_username, self.conf.email_smtp_password)
-            s.sendmail('', self.conf.email_to, msg.as_string())
+
+            # Retry if sending fails
+            send_attempts = 0
+            while send_attempts < 5:
+                try:
+                    s.login(self.conf.email_smtp_username, self.conf.email_smtp_password)
+                    s.sendmail('', self.conf.email_to, msg.as_string())
+                    break
+                except:
+                    send_attempts += 1
             s.quit()
 
     def format_email_message(self, notification_list):

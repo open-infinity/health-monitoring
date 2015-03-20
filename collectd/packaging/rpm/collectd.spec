@@ -1,7 +1,7 @@
 
 Name:           collectd
 Version:        5.4.1
-Release:        10%{?dist}
+Release:        11%{?dist}
 Summary:        Collectd configured for Open Infinity
 BuildArch:      x86_64
 Group:          Applications
@@ -18,6 +18,7 @@ BuildRequires:  flex >= 2.5
 BuildRequires:  byacc >= 1.9
 BuildRequires:  libtool >= 2.2.6 
 BuildRequires:  glib2-devel >= 2.26.1
+BuildRequires:  mysql-devel >= 5.1.73
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -31,7 +32,7 @@ Collectd configured for Open Infinity
 %setup -q
 
 %build
-./configure --prefix %{installation_path}/collectd --enable-rrdtool --enable-debug --enable-java LDFLAGS='-Wl,-rpath,/usr/lib/jvm/jre-1.7.0/lib/amd64/server' JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/
+./configure --prefix %{installation_path}/collectd --enable-mysql --enable-rrdtool --enable-debug --enable-java LDFLAGS='-Wl,-rpath,/usr/lib/jvm/jre-1.7.0/lib/amd64/server' JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/
 make
 
 %install
@@ -75,11 +76,11 @@ if [ "$1" = 0 ]; then
 fi
 
 %postun
-if [ "$1" -ge "1" ] ; then
-    /sbin/service collectd condrestart >/dev/null 2>&1 || :
-    rm -rf %{installation_path}/collectd
-fi
-
+#if [ "$1" -ge "1" ] ; then
+#    /sbin/service collectd condrestart >/dev/null 2>&1 || :
+#
+#fi
+rm -rf /%{installation_path}/collectd
 exit 0
 
 %changelog

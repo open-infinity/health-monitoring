@@ -1,6 +1,6 @@
 Name:           oi3-nodechecker
 Version:        3.1.0
-Release:        10%{?dist}
+Release:        22%{?dist}
 Summary:        Main Health Monitoring package for Open Infinity
 BuildArch:      x86_64
 License:        Apache 2.0
@@ -15,7 +15,7 @@ Requires:       java-1.7.0-openjdk, Pound, python => 2.6
 %description
 Main Health Monitoring package for Open Infinity. It contains the main logic of the
 monitoring system. Configures and controlls other OpenInfinity Health Monitoring
-components: rrd-http-server, collectd and pound.  
+components: rrd-http-server, collectd
 
 %prep
 %setup -q
@@ -29,8 +29,8 @@ cp -rf ./etc/init.d/oi3-nodechecker %{buildroot}%{_initddir}
 #cp -rf ./etc/profile.d/oi.sh.x86_64 %{buildroot}%{_sysconfdir}/profile.d/oi.sh
 
 mkdir -p %{installation_dir}/nodechecker/etc
-cp -rf ./opt/monitoring/* %{installation_dir}/nodechecker
-cp -rf ./lib/python/nodechecker/nodechecker.conf %{installation_dir}/nodechecker/etc/
+cp -rf ./opt/nodechecker/* %{installation_dir}/nodechecker
+#cp -rf ./lib/python/nodechecker/nodechecker.conf %{installation_dir}/nodechecker/etc/
 
 #mkdir -p %{installation_dir}/collectd
 #cp -rf ./opt/collectd/* %{installation_dir}/collectd
@@ -46,8 +46,8 @@ mkdir -p %{buildroot}/usr/lib/python2.6/site-packages/nodechecker
 cp -rf ./lib/python/nodechecker/* %{buildroot}/usr/lib/python2.6/site-packages/nodechecker/
 
 mkdir -p %{installation_dir}/nodechecker/bin
-cp -rf ./lib/python/nodechecker/control/start %{installation_dir}/nodechecker/bin/
-cp -rf ./lib/python/nodechecker/control/stop %{installation_dir}/nodechecker/bin/
+cp -rf ./opt/nodechecker/bin/start %{installation_dir}/nodechecker/bin/
+cp -rf ./opt/nodechecker/bin/stop %{installation_dir}/nodechecker/bin/
 
 mkdir -p %{buildroot}/usr/local/bin
 cp -rf ./usr/local/bin/notify %{buildroot}/usr/local/bin/
@@ -56,10 +56,10 @@ cp -rf ./usr/local/bin/notify %{buildroot}/usr/local/bin/
 %defattr(-,root,root,-)
 #%{_initddir}/oi3-collectd
 %{_initddir}/oi3-nodechecker
-%{_sysconfdir}/profile.d/oi.sh
+#%{_sysconfdir}/profile.d/oi.sh
 /%{installation_path}/nodechecker/
 #/%{installation_path}/collectd
-/%{installation_path}/pound/
+#/%{installation_path}/pound/
 /usr/lib/python2.6/site-packages/nodechecker/
 /usr/local/bin/notify
 
@@ -69,15 +69,15 @@ useradd nodechecker > /dev/null 2>&1
 #usermod -a -G collectd nodechecker  > /dev/null 2>&1
 mkdir -p /%{installation_path}/nodechecker/var/run
 
-chown -R nodechecker /%{installation_path}/nodechecker
-chown -R nodechecker /%{installation_path}/pound
-chown nodechecker /etc/pound.cfg
+chown -R nodechecker:nodechecker /%{installation_path}/nodechecker
+#chown -R nodechecker /%{installation_path}/pound
+#chown nodechecker /etc/pound.cfg
 #chown -R collectd /%{installation_path}/collectd
 #chown -R root /%{installation_path}/collectd/sbin
 #chown -R root /%{installation_path}/pound/bin
 
 chmod 775 /%{installation_path}/collectd/etc/collectd.d
-chmod 755 %{_initddir}/oi3-collectd
+#chmod 755 %{_initddir}/oi3-collectd
 chmod 755 %{_initddir}/oi3-nodechecker
 chmod 777 /%{installation_path}/nodechecker/var/lib/notifications/inbox
 chmod 777 /%{installation_path}/nodechecker/var/lib/notifications/sent

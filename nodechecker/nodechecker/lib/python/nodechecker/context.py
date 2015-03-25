@@ -73,6 +73,7 @@ class Context(object):
             self.heartbeat_period = int(conf.node_heartbeat_period)
             self.rrd_scan_period = int(conf.node_rrd_scan_period)
             self.dead_node_timeout = int(conf.node_dead_node_timeout)
+            self.node_master_timeout = int(conf.node_master_timeout)
 
             if options and options.log_level:
                 self.log_level = options.log_level

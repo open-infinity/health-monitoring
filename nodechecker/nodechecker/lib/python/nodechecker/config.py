@@ -22,6 +22,7 @@ class Config(object):
         self.node_cloud_zone = config.get('node', 'cloud_zone')
         self.node_heartbeat_period = config.get('node', 'heartbeat_period')
         self.node_rrd_scan_period = config.get('node', 'rrd_scan_period')
+        self.node_master_timeout = config.get('node', 'master_timeout')
         self.node_dead_node_timeout = config.get('node', 'dead_node_timeout')
 
         self.nodechecker_home = config.get('nodechecker', 'home')

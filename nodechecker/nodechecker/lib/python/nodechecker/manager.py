@@ -138,7 +138,7 @@ class Manager(threading.Thread):
         self._ctx.heartbeats_received = 0
         self._ctx.master_list[:] = []
 
-        # Sleep, count masters when awake, then all your base are belong to us.
+        # Sleep, count masters when awake
         self._logger.debug("_get_master_count sleep")
         time.sleep(heartbeat_periods * self._ctx.heartbeat_period)
         print("_get_master_count awake")
@@ -292,7 +292,7 @@ class Manager(threading.Thread):
         while self._continue:
             try:
                 self._sync_collections(a_node_list)
-                if self._get_master_count(2) == "TOO_LOW":
+                if self._get_master_count(self._ctx.node_master_timeout) == "TOO_LOW":
                     break
                 if self._ctx.my_master != self._ctx.master_list[0]:
                     self._assign_master(self._ctx.master_list[0])

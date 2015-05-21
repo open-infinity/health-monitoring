@@ -40,7 +40,7 @@ class RepeatingThreadSafeTimer(threading.Thread):
                 now = time.strftime("%H:%M:%S:%MS", time.localtime())
                 print(now + "...function done")
             else:
-                self.logger.dedub("finished is set")
+                self.logger.debug("finished is set")
                 break
             self.logger.debug("RepeatingThreadSafeTimer EXIT run ")
 

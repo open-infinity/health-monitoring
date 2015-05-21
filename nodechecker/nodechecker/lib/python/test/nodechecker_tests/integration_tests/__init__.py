@@ -55,19 +55,20 @@ def create_tree(test_dir, nodechecker_home, collectd_home, pound_home, rrd_http_
     p4_dir = os.path.abspath(os.path.join(p3_dir, os.pardir))
     src_dir = os.path.abspath(os.path.join(p4_dir, os.pardir))
 
-    var_dir = os.path.join(src_dir, 'opt', 'monitoring', 'var')
+
+    var_dir = os.path.join(src_dir, 'opt', 'nodechecker', 'var')
     try:
         shutil.copytree(var_dir, os.path.join(nodechecker_home, 'var'))
         os.makedirs(os.path.join(nodechecker_home, 'var', 'log'))
         os.makedirs(collectd_home)
-        os.makedirs(pound_home)
-
+        #os.makedirs(pound_home)
         os.makedirs(rrd_http_server_home)
         etc_dir = os.path.join(test_dir, 'data', 'hm_root', 'nodechecker', 'etc')
         shutil.copytree(etc_dir, os.path.join(nodechecker_home, 'etc'))
         os.makedirs(notifications_home)
     except:
         print(sys.exc_info())
+
         
         
 

@@ -1,7 +1,7 @@
 
 Name:           collectd
 Version:        5.4.1
-Release:        11%{?dist}
+Release:        13%{?dist}
 Summary:        Collectd configured for Open Infinity
 BuildArch:      x86_64
 Group:          Applications
@@ -19,6 +19,10 @@ BuildRequires:  byacc >= 1.9
 BuildRequires:  libtool >= 2.2.6 
 BuildRequires:  glib2-devel >= 2.26.1
 BuildRequires:  mysql-devel >= 5.1.73
+BuildRequires:  libdbi-drivers
+BuildRequires:  libdbi-dbd-mysql
+Requires:       libdbi-drivers
+Requires:       libdbi-dbd-mysql
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -32,7 +36,7 @@ Collectd configured for Open Infinity
 %setup -q
 
 %build
-./configure --prefix %{installation_path}/collectd --enable-mysql --enable-rrdtool --enable-debug --enable-java LDFLAGS='-Wl,-rpath,/usr/lib/jvm/jre-1.7.0/lib/amd64/server' JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/
+./configure --prefix %{installation_path}/collectd --enable-dbi --enable-mysql --enable-rrdtool --enable-debug --enable-java LDFLAGS='-Wl,-rpath,/usr/lib/jvm/jre-1.7.0/lib/amd64/server' JAVA_CPPFLAGS='-I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/linux/ -I/usr/lib/jvm/java-1.7.0-openjdk.x86_64/include/' --with-java=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/
 make
 
 %install

@@ -1,6 +1,6 @@
 Name:           oi3-nodechecker
 Version:        3.1.0
-Release:        22%{?dist}
+Release:        24%{?dist}
 Summary:        Main Health Monitoring package for Open Infinity
 BuildArch:      x86_64
 License:        Apache 2.0

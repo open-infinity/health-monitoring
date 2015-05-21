@@ -37,7 +37,7 @@ class MailSender(object):
                 try:
                     s = smtplib.SMTP(self.conf.email_smtp_server, self.conf.email_smtp_port)
                     s.login(self.conf.email_smtp_username, self.conf.email_smtp_password)
-                    s.sendmail('', self.conf.email_to, msg.as_string())
+                    s.sendmail('', self.conf.email_to.split(','), msg.as_string())
                     break
                 except:
                     nodechecker.util.log_exception(sys.exc_info())
